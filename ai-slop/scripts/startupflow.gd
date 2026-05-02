@@ -146,8 +146,6 @@ func _play_glitch_and_force_yes() -> void:
 	welcome_label.text = "..."
 	await get_tree().create_timer(0.6).timeout
 
-	_finish_startup()
-
 
 func _reset_prompt_to_default() -> void:
 	forced_yes_mode = false
