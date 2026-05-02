@@ -1,0 +1,38 @@
+name: Godot CI
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Cache Godot import data to speed things up
+      - name: Cache Godot imports
+        uses: actions/cache@v4
+        with:
+          path: .import/
+          key: ${{ runner.os }}-godot-import-${{ hashFiles('**/*.tscn', '**/*.tres') }}
+
+      - name: Setup Godot
+        uses: firebelley/godot-export@v5
+        with:
+          godot-version: 4.2.2
+          export-debug: false
+
+      - name: Import project (fails on errors)
+        run: godot --headless --import
+
+      - name: Basic run check (catches script errors)
+        run: godot --headless --quit
+
+      - name: Export (build) project
+        run: |
+          mkdir -p build
+          godot --headless --export-release "Linux/X11" build/game.x86_64
