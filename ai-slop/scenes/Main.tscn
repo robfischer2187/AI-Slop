@@ -1,5 +1,6 @@
 [gd_scene load_steps=13 format=3 uid="uid://dg3e0ra0x5bm7"]
 
+<<<<<<< HEAD
 [ext_resource type="Script" uid="uid://cdsr50nwwc5ep" path="res://scripts/main.gd" id="1_elqb8"]
 [ext_resource type="Script" uid="uid://c74rylmp2fn4t" path="res://scripts/input_slot.gd" id="2_0bbpv"]
 [ext_resource type="Texture2D" uid="uid://b6som6e3b1g0" path="res://icon.svg" id="2_rarhs"]
@@ -156,20 +157,50 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="DesktopUI" type="Control" parent="UIRoot/UIContainer/PCScreenArea"]
+=======
+[node name="Main" type="Node2D"]
+
+[node name="OfficeBackground" type="Sprite2D" parent="."]
+
+[node name="AlastorSlopp" type="CharacterBody2D" parent="."]
+
+[node name="Sprite2D" type="Sprite2D" parent="AlastorSlopp"]
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="AlastorSlopp"]
+
+[node name="MonitorFrame" type="Sprite2D" parent="."]
+
+[node name="PCScreenArea" type="Control" parent="."]
+layout_mode = 3
+>>>>>>> e481ef7 (Node Tree again, now working)
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
 
+<<<<<<< HEAD
 [node name="TaskText" type="Label" parent="UIRoot/UIContainer/PCScreenArea"]
+=======
+[node name="DesktopUI" type="Control" parent="PCScreenArea"]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="TaskText" type="Label" parent="PCScreenArea"]
+>>>>>>> e481ef7 (Node Tree again, now working)
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0
 
+<<<<<<< HEAD
 [node name="InputSlots" type="Control" parent="UIRoot/UIContainer/PCScreenArea"]
+=======
+[node name="InputSlots" type="Control" parent="PCScreenArea"]
+>>>>>>> e481ef7 (Node Tree again, now working)
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
 
+<<<<<<< HEAD
 [node name="Slot" type="Panel" parent="UIRoot/UIContainer/PCScreenArea/InputSlots"]
 layout_mode = 0
 offset_right = 40.0
@@ -177,10 +208,19 @@ offset_bottom = 40.0
 script = ExtResource("2_0bbpv")
 
 [node name="DraggableItems" type="Control" parent="UIRoot/UIContainer/PCScreenArea"]
+=======
+[node name="Slot" type="Panel" parent="PCScreenArea/InputSlots"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="DraggableItems" type="Control" parent="PCScreenArea"]
+>>>>>>> e481ef7 (Node Tree again, now working)
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
 
+<<<<<<< HEAD
 [node name="Item1" type="TextureRect" parent="UIRoot/UIContainer/PCScreenArea/DraggableItems" groups=["draggable"]]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 0
@@ -251,6 +291,33 @@ theme_override_fonts/font = ExtResource("7_nxtc6")
 theme_override_font_sizes/font_size = 32
 horizontal_alignment = 1
 vertical_alignment = 1
+=======
+[node name="Item1" type="TextureRect" parent="PCScreenArea/DraggableItems"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Item2" type="TextureRect" parent="PCScreenArea/DraggableItems"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Item3" type="TextureRect" parent="PCScreenArea/DraggableItems"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="CursorBlockerArea" type="ColorRect" parent="PCScreenArea"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="HorrorOverlay" type="CanvasLayer" parent="."]
+
+[node name="ColorRect" type="ColorRect" parent="HorrorOverlay"]
+offset_right = 40.0
+offset_bottom = 40.0
+>>>>>>> e481ef7 (Node Tree again, now working)
 
 [node name="AudioManager" type="Node" parent="."]
 
