@@ -21,7 +21,7 @@ jobs:
           key: ${{ runner.os }}-godot-import-${{ hashFiles('**/*.tscn', '**/*.tres') }}
 
       - name: Setup Godot
-        uses: firebelley/godot-export@v6
+        uses: firebelley/godot-export@v4
         with:
           godot-version: 4.2.2
           export-debug: false
