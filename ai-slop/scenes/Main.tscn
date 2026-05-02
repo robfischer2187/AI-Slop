@@ -1,37 +1,12 @@
-[gd_scene load_steps=9 format=3 uid="uid://dg3e0ra0x5bm7"]
+[gd_scene load_steps=13 format=3 uid="uid://dg3e0ra0x5bm7"]
 
 [ext_resource type="Script" uid="uid://cdsr50nwwc5ep" path="res://scripts/main.gd" id="1_elqb8"]
 [ext_resource type="Script" uid="uid://c74rylmp2fn4t" path="res://scripts/input_slot.gd" id="2_0bbpv"]
 [ext_resource type="Texture2D" uid="uid://b6som6e3b1g0" path="res://icon.svg" id="2_rarhs"]
 [ext_resource type="Script" uid="uid://ciq6ut2jlqp1h" path="res://scripts/draggable_item.gd" id="2_rvslj"]
-
-[sub_resource type="Animation" id="Animation_0bbpv"]
-resource_name = "walk"
-loop_mode = 1
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath(".:position")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0, 1),
-"transitions": PackedFloat32Array(1, 1),
-"update": 0,
-"values": [Vector2(-90, 132), Vector2(1238, 132)]
-}
-tracks/1/type = "value"
-tracks/1/imported = false
-tracks/1/enabled = true
-tracks/1/path = NodePath(".:rotation")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
-tracks/1/keys = {
-"times": PackedFloat32Array(0, 1),
-"transitions": PackedFloat32Array(1, 1),
-"update": 0,
-"values": [0.0, 0.0]
-}
+[ext_resource type="Texture2D" uid="uid://bsswxb1p3ruln" path="res://assets/art/AI_GAME_walls.png" id="2_vcsgt"]
+[ext_resource type="Shader" uid="uid://bdo5nvbr4iex" path="res://scripts/shader/horror.gdshader" id="6_c01mt"]
+[ext_resource type="FontFile" uid="uid://b2mhm7pqauqyy" path="res://assets/fonts/Sniglet-Regular.ttf" id="7_nxtc6"]
 
 [sub_resource type="Animation" id="Animation_rarhs"]
 length = 0.001
@@ -60,6 +35,34 @@ tracks/1/keys = {
 "values": [0.0]
 }
 
+[sub_resource type="Animation" id="Animation_0bbpv"]
+resource_name = "walk"
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(-312, 662), Vector2(2157, 662)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:rotation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [0.0, 0.0]
+}
+
 [sub_resource type="Animation" id="Animation_vcsgt"]
 resource_name = "watch"
 tracks/0/type = "value"
@@ -72,7 +75,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Vector2(568, 132)]
+"values": [Vector2(950, 475)]
 }
 tracks/1/type = "value"
 tracks/1/imported = false
@@ -94,10 +97,27 @@ _data = {
 &"watch": SubResource("Animation_vcsgt")
 }
 
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_nxtc6"]
+shader = ExtResource("6_c01mt")
+shader_parameter/vignette_strength = 0.8
+shader_parameter/vignette_pulse = 0.06
+shader_parameter/pulse_speed = 2.0
+shader_parameter/darkness = 0.15
+shader_parameter/contrast = 1.15
+shader_parameter/grain_strength = 0.06
+shader_parameter/chromatic_strength = 0.002
+shader_parameter/flicker_chance = 0.015
+shader_parameter/warm_tint = Vector3(1, 0.92, 0.75)
+shader_parameter/cold_tint = Vector3(0.7, 0.75, 0.8)
+shader_parameter/tint_strength = 0.35
+
 [node name="Main" type="Node2D"]
 script = ExtResource("1_elqb8")
 
-[node name="OfficeBackground" type="Sprite2D" parent="."]
+[node name="OfficeBackground" type="TextureRect" parent="."]
+offset_right = 1920.0
+offset_bottom = 1080.0
+texture = ExtResource("2_vcsgt")
 
 [node name="AlastorSlopp" type="CharacterBody2D" parent="."]
 position = Vector2(-90, 132)
@@ -128,9 +148,9 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 121.0
-offset_top = 132.0
-offset_right = -101.18994
+offset_left = 293.0
+offset_top = 449.0
+offset_right = -379.0
 offset_bottom = -1.0
 grow_horizontal = 2
 grow_vertical = 2
@@ -209,13 +229,28 @@ color = Color(1, 1, 1, 0)
 
 [node name="HorrorOverlay" type="CanvasLayer" parent="UIRoot/UIContainer"]
 
-[node name="ColorRect" type="ColorRect" parent="UIRoot/UIContainer/HorrorOverlay"]
-offset_right = 40.0
-offset_bottom = 40.0
+[node name="EffectRect" type="ColorRect" parent="UIRoot/UIContainer/HorrorOverlay"]
+material = SubResource("ShaderMaterial_nxtc6")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 0)
 
 [node name="DialogueLabel" type="Label" parent="UIRoot"]
-offset_right = 40.0
-offset_bottom = 23.0
+offset_left = 678.0
+offset_top = 992.0
+offset_right = 1245.0
+offset_bottom = 1031.0
+theme_override_colors/font_color = Color(0.9058309, 1, 0.9063318, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 10
+theme_override_fonts/font = ExtResource("7_nxtc6")
+theme_override_font_sizes/font_size = 32
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="AudioManager" type="Node" parent="."]
 
