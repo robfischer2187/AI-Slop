@@ -15,9 +15,15 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 [application]
 
 config/name="AI Slop"
-config/features=PackedStringArray("4.6", "Forward Plus")
+run/main_scene="uid://dg3e0ra0x5bm7"
+config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="res://icon.svg"
 
-[dotnet]
+[display]
 
-project/assembly_name="AI Slop"
+window/size/viewport_width=1920
+window/size/viewport_height=1080
+window/size/mode=3
+window/size/initial_position_type=0
+window/size/borderless=true
+window/stretch/mode="canvas_items"
