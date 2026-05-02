@@ -112,7 +112,7 @@ grow_vertical = 2
 text = "Welcome employees"
 horizontal_alignment = 1
 
-[node name="SupportPrompt" type="AcceptDialog" parent="." unique_id=1279854504]
+[node name="SupportPrompt" type="ConfirmationDialog" parent="." unique_id=1279854504]
 title = "Support"
 size = Vector2i(340, 130)
 dialog_text = "Please contact support if you need help."
