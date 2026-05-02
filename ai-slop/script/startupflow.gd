@@ -6,15 +6,15 @@ enum Phase { LOGIN, LOADING, WELCOME, PROMPT }
 @export var welcome_hold_seconds: float = 2.5
 @export var debug_fast_mode := false
 
-@onready var login_panel: Control = get_node_or_null("LoginPanel")
-@onready var loading_panel: Control = get_node_or_null("LoadingPanel")
-@onready var welcome_panel: Control = get_node_or_null("WelcomePanel")
+@onready var login_panel: Control = get_node_or_null("Screen/LoginPanel")
+@onready var loading_panel: Control = get_node_or_null("Screen/LoadingPanel")
+@onready var welcome_panel: Control = get_node_or_null("Screen/WelcomePanel")
 
-@onready var login_button: Button = get_node_or_null("LoginPanel/LoginButton")
-@onready var progress_bar: ProgressBar = get_node_or_null("LoadingPanel/ProgressBar")
-@onready var welcome_label: Label = get_node_or_null("WelcomePanel/WelcomeLabel")
+@onready var login_button: Button = get_node_or_null("Screen/LoginPanel/LoginButton")
+@onready var progress_bar: ProgressBar = get_node_or_null("Screen/LoadingPanel/ProgressBar")
+@onready var welcome_label: Label = get_node_or_null("Screen/WelcomePanel/WelcomeLabel")
 
-@onready var support_prompt: ConfirmationDialog = get_node_or_null("SupportPrompt")
+@onready var support_prompt: ConfirmationDialog = get_node_or_null("Screen/SupportPrompt")
 
 signal startup_finished(support_forced: bool)
 
@@ -41,7 +41,6 @@ func _ready() -> void:
 	support_prompt.canceled.connect(_on_support_no)
 
 	_reset_prompt_to_default()
-
 	support_prompt.exclusive = true
 
 
@@ -49,24 +48,24 @@ func _validate_nodes_or_abort() -> void:
 	var missing: Array[String] = []
 
 	if login_panel == null:
-		missing.append("LoginPanel")
+		missing.append("Screen/LoginPanel")
 	if loading_panel == null:
-		missing.append("LoadingPanel")
+		missing.append("Screen/LoadingPanel")
 	if welcome_panel == null:
-		missing.append("WelcomePanel")
+		missing.append("Screen/WelcomePanel")
 
 	if login_button == null:
-		missing.append("LoginPanel/LoginButton")
+		missing.append("Screen/LoginPanel/LoginButton")
 	if progress_bar == null:
-		missing.append("LoadingPanel/ProgressBar")
+		missing.append("Screen/LoadingPanel/ProgressBar")
 	if welcome_label == null:
-		missing.append("WelcomePanel/WelcomeLabel")
+		missing.append("Screen/WelcomePanel/WelcomeLabel")
 
 	if support_prompt == null:
-		missing.append("SupportPrompt (ConfirmationDialog)")
+		missing.append("Screen/SupportPrompt (ConfirmationDialog)")
 
 	if missing.size() > 0:
-		push_error("startupflow.gd: missing nodes: %s — check node names/paths and change SupportPrompt node type to ConfirmationDialog." % str(missing))
+		push_error("startupflow.gd: missing nodes: %s — check node names/paths." % str(missing))
 		set_process(false)
 		set_physics_process(false)
 		set_process_input(false)
@@ -153,7 +152,7 @@ func _reset_prompt_to_default() -> void:
 
 func _set_prompt_forced_yes() -> void:
 	support_prompt.title = "COMPLIANCE CHECK"
-	support_prompt.dialog_text = "You Wish Just Press Yes"
+	support_prompt.dialog_text = "SORRY. YOU HAVE NO OTHER OPTION."
 	support_prompt.get_ok_button().text = "YES"
 	support_prompt.get_cancel_button().hide()
 
