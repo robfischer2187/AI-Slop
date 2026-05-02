@@ -1,3 +1,76 @@
 [gd_scene format=3 uid="uid://dg3e0ra0x5bm7"]
 
-[node name="Game" type="Node2D"]
+[node name="Main" type="Node2D"]
+
+[node name="OfficeBackground" type="Sprite2D" parent="."]
+
+[node name="AlastorSlopp" type="CharacterBody2D" parent="."]
+
+[node name="Sprite2D" type="Sprite2D" parent="AlastorSlopp"]
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="AlastorSlopp"]
+
+[node name="MonitorFrame" type="Sprite2D" parent="."]
+
+[node name="PCScreenArea" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="DesktopUI" type="Control" parent="PCScreenArea"]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="TaskText" type="Label" parent="PCScreenArea"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+
+[node name="InputSlots" type="Control" parent="PCScreenArea"]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Slot" type="Panel" parent="PCScreenArea/InputSlots"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="DraggableItems" type="Control" parent="PCScreenArea"]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Item1" type="TextureRect" parent="PCScreenArea/DraggableItems"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Item2" type="TextureRect" parent="PCScreenArea/DraggableItems"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Item3" type="TextureRect" parent="PCScreenArea/DraggableItems"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="CursorBlockerArea" type="ColorRect" parent="PCScreenArea"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="HorrorOverlay" type="CanvasLayer" parent="."]
+
+[node name="ColorRect" type="ColorRect" parent="HorrorOverlay"]
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="AudioManager" type="Node" parent="."]
+
+[node name="Music" type="AudioStreamPlayer2D" parent="AudioManager"]
+
+[node name="SFX" type="AudioStreamPlayer2D" parent="AudioManager"]
