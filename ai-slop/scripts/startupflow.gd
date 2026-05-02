@@ -17,6 +17,8 @@ enum Phase { LOGIN, LOADING, WELCOME, PROMPT }
 
 @onready var support_prompt: ConfirmationDialog = get_node_or_null("SupportPrompt")
 
+@onready var alastor: Node2D = get_node_or_null("../../../../AlastorSlopp")
+
 # The Control to center the dialog within.
 # By default we try to use our parent (PCScreenArea) if it's a Control.
 @export var pc_screen_path: NodePath
@@ -49,6 +51,9 @@ func _ready() -> void:
 	support_prompt.exclusive = true
 
 	_reset_prompt_to_default()
+
+	if alastor != null:
+		alastor.visible = false
 
 
 func _validate_nodes_or_abort() -> void:
@@ -123,6 +128,9 @@ func _show_welcome_then_prompt() -> void:
 
 func _on_support_yes() -> void:
 	# In forced mode, YES means "you tried NO, too bad" but still continue.
+	if alastor != null:
+		alastor.visible = true
+	
 	support_forced = forced_yes_mode
 	_finish_startup()
 
