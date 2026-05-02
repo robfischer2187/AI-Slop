@@ -1,8 +1,8 @@
 [gd_scene format=3 uid="uid://dqwqscyrjbale"]
 
-[ext_resource type="Script" uid="uid://shgx88qq31fp" path="res://script/startupflow.gd" id="1_tkdkk"]
-[ext_resource type="Texture2D" uid="uid://dobx4etmpbxcw" path="res://assets/AI_GAME_walls.png" id="2_bg"]
-[ext_resource type="Texture2D" uid="uid://beuge7cb7mw7q" path="res://assets/AI GAME COMPUTER.png" id="3_comp"]
+[ext_resource type="Script" uid="uid://shgx88qq31fp" path="res://scripts/startupflow.gd" id="1_tkdkk"]
+[ext_resource type="Texture2D" uid="uid://bsswxb1p3ruln" path="res://assets/art/AI_GAME_walls.png" id="2_bg"]
+[ext_resource type="Texture2D" uid="uid://bimg4ydud0iv4" path="res://assets/art/AI GAME COMPUTER.png" id="3_comp"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tkdkk"]
 bg_color = Color(0.078431375, 0.078431375, 0.078431375, 1)
@@ -45,7 +45,8 @@ grow_vertical = 2
 texture = ExtResource("3_comp")
 stretch_mode = 2
 
-[node name="Screen" type="Control" parent="." unique_id=300000001]
+[node name="StartupFlow" type="Control" parent="." unique_id=300000001]
+clip_contents = true
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -58,9 +59,8 @@ offset_right = 170.0
 offset_bottom = 85.0
 grow_horizontal = 2
 grow_vertical = 2
-clip_contents = true
 
-[node name="LoginPanel" type="Control" parent="Screen" unique_id=1508687675]
+[node name="LoginPanel" type="Control" parent="StartupFlow" unique_id=1508687675]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -68,7 +68,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="LoginButton" type="Button" parent="Screen/LoginPanel" unique_id=183089982]
+[node name="LoginButton" type="Button" parent="StartupFlow/LoginPanel" unique_id=183089982]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -84,7 +84,7 @@ grow_vertical = 2
 text = "Login"
 icon_alignment = 1
 
-[node name="LoadingPanel" type="Control" parent="Screen" unique_id=505666866]
+[node name="LoadingPanel" type="Control" parent="StartupFlow" unique_id=505666866]
 visible = false
 layout_mode = 1
 anchors_preset = 15
@@ -93,7 +93,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="ProgressBar" type="ProgressBar" parent="Screen/LoadingPanel" unique_id=1965252706]
+[node name="ProgressBar" type="ProgressBar" parent="StartupFlow/LoadingPanel" unique_id=1965252706]
 layout_mode = 1
 anchors_preset = 12
 anchor_top = 1.0
@@ -108,7 +108,7 @@ grow_vertical = 0
 theme_override_styles/background = SubResource("StyleBoxFlat_tkdkk")
 theme_override_styles/fill = SubResource("StyleBoxFlat_5g6lu")
 
-[node name="Loading" type="Label" parent="Screen/LoadingPanel" unique_id=348043069]
+[node name="Loading" type="Label" parent="StartupFlow/LoadingPanel" unique_id=348043069]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -124,7 +124,7 @@ grow_vertical = 2
 text = "Loading..."
 horizontal_alignment = 1
 
-[node name="WelcomePanel" type="Control" parent="Screen" unique_id=557477916]
+[node name="WelcomePanel" type="Control" parent="StartupFlow" unique_id=557477916]
 visible = false
 layout_mode = 1
 anchors_preset = 15
@@ -133,7 +133,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="WelcomeLabel" type="Label" parent="Screen/WelcomePanel" unique_id=1338942726]
+[node name="WelcomeLabel" type="Label" parent="StartupFlow/WelcomePanel" unique_id=1338942726]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -149,7 +149,7 @@ grow_vertical = 2
 text = "Welcome employees"
 horizontal_alignment = 1
 
-[node name="SupportPrompt" type="ConfirmationDialog" parent="Screen" unique_id=1279854504]
+[node name="SupportPrompt" type="ConfirmationDialog" parent="StartupFlow" unique_id=1279854504]
 title = "Support"
 size = Vector2i(300, 110)
 dialog_text = "Please contact support if you need help."

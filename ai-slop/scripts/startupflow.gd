@@ -6,15 +6,25 @@ enum Phase { LOGIN, LOADING, WELCOME, PROMPT }
 @export var welcome_hold_seconds: float = 2.5
 @export var debug_fast_mode := false
 
-@onready var login_panel: Control = get_node_or_null("Screen/LoginPanel")
-@onready var loading_panel: Control = get_node_or_null("Screen/LoadingPanel")
-@onready var welcome_panel: Control = get_node_or_null("Screen/WelcomePanel")
+# StartupFlow contains these panels as children now:
+@onready var login_panel: Control = get_node_or_null("LoginPanel")
+@onready var loading_panel: Control = get_node_or_null("LoadingPanel")
+@onready var welcome_panel: Control = get_node_or_null("WelcomePanel")
 
-@onready var login_button: Button = get_node_or_null("Screen/LoginPanel/LoginButton")
-@onready var progress_bar: ProgressBar = get_node_or_null("Screen/LoadingPanel/ProgressBar")
-@onready var welcome_label: Label = get_node_or_null("Screen/WelcomePanel/WelcomeLabel")
+@onready var login_button: Button = get_node_or_null("LoginPanel/LoginButton")
+@onready var progress_bar: ProgressBar = get_node_or_null("LoadingPanel/ProgressBar")
+@onready var welcome_label: Label = get_node_or_null("WelcomePanel/WelcomeLabel")
 
-@onready var support_prompt: ConfirmationDialog = get_node_or_null("Screen/SupportPrompt")
+@onready var support_prompt: ConfirmationDialog = get_node_or_null("SupportPrompt")
+
+# The Control to center the dialog within.
+# By default we try to use our parent (PCScreenArea) if it's a Control.
+@export var pc_screen_path: NodePath
+@onready var pc_screen: Control = (
+	get_node_or_null(pc_screen_path) as Control
+	if pc_screen_path != NodePath("")
+	else get_parent() as Control
+)
 
 signal startup_finished(support_forced: bool)
 
@@ -30,42 +40,42 @@ func _ready() -> void:
 		welcome_hold_seconds = 0.1
 
 	_validate_nodes_or_abort()
-	if not is_inside_tree():
-		return
-
 	_set_phase(Phase.LOGIN)
 
 	login_button.pressed.connect(_on_login_pressed)
 
 	support_prompt.confirmed.connect(_on_support_yes)
 	support_prompt.canceled.connect(_on_support_no)
+	support_prompt.exclusive = true
 
 	_reset_prompt_to_default()
-	support_prompt.exclusive = true
 
 
 func _validate_nodes_or_abort() -> void:
 	var missing: Array[String] = []
 
 	if login_panel == null:
-		missing.append("Screen/LoginPanel")
+		missing.append("LoginPanel")
 	if loading_panel == null:
-		missing.append("Screen/LoadingPanel")
+		missing.append("LoadingPanel")
 	if welcome_panel == null:
-		missing.append("Screen/WelcomePanel")
+		missing.append("WelcomePanel")
 
 	if login_button == null:
-		missing.append("Screen/LoginPanel/LoginButton")
+		missing.append("LoginPanel/LoginButton")
 	if progress_bar == null:
-		missing.append("Screen/LoadingPanel/ProgressBar")
+		missing.append("LoadingPanel/ProgressBar")
 	if welcome_label == null:
-		missing.append("Screen/WelcomePanel/WelcomeLabel")
+		missing.append("WelcomePanel/WelcomeLabel")
 
 	if support_prompt == null:
-		missing.append("Screen/SupportPrompt (ConfirmationDialog)")
+		missing.append("SupportPrompt (ConfirmationDialog)")
+
+	if pc_screen == null:
+		missing.append("pc_screen (set pc_screen_path in Inspector OR ensure StartupFlow parent is PCScreenArea Control)")
 
 	if missing.size() > 0:
-		push_error("startupflow.gd: missing nodes: %s — check node names/paths." % str(missing))
+		push_error("startupflow.gd: missing nodes: %s" % str(missing))
 		set_process(false)
 		set_physics_process(false)
 		set_process_input(false)
@@ -108,14 +118,12 @@ func _show_welcome_then_prompt() -> void:
 
 	_set_phase(Phase.PROMPT)
 	_reset_prompt_to_default()
-	support_prompt.popup_centered()
+	_popup_prompt_centered_in_pc_screen_clamped()
 
 
 func _on_support_yes() -> void:
-	if forced_yes_mode:
-		support_forced = true
-	else:
-		support_forced = false
+	# In forced mode, YES means "you tried NO, too bad" but still continue.
+	support_forced = forced_yes_mode
 	_finish_startup()
 
 
@@ -130,7 +138,7 @@ func _play_glitch_and_force_yes() -> void:
 
 	await get_tree().create_timer(0.08).timeout
 	_set_prompt_forced_yes()
-	support_prompt.popup_centered()
+	_popup_prompt_centered_in_pc_screen_clamped()
 
 	await get_tree().create_timer(0.12).timeout
 
@@ -155,6 +163,27 @@ func _set_prompt_forced_yes() -> void:
 	support_prompt.dialog_text = "SORRY. YOU HAVE NO OTHER OPTION."
 	support_prompt.get_ok_button().text = "YES"
 	support_prompt.get_cancel_button().hide()
+
+
+func _popup_prompt_centered_in_pc_screen_clamped() -> void:
+	if pc_screen == null:
+		support_prompt.popup_centered()
+		return
+
+	# Ensure dialog has a size
+	if support_prompt.size.x <= 0 or support_prompt.size.y <= 0:
+		support_prompt.size = Vector2i(340, 130)
+
+	var screen_rect: Rect2 = pc_screen.get_global_rect()
+	var dlg_size: Vector2 = Vector2(support_prompt.size)
+
+	var pos: Vector2 = screen_rect.position + (screen_rect.size - dlg_size) * 0.5
+
+	# clamp inside the screen rect
+	pos.x = clampf(pos.x, screen_rect.position.x, screen_rect.position.x + screen_rect.size.x - dlg_size.x)
+	pos.y = clampf(pos.y, screen_rect.position.y, screen_rect.position.y + screen_rect.size.y - dlg_size.y)
+
+	support_prompt.popup(Rect2i(pos, dlg_size))
 
 
 func _finish_startup() -> void:
