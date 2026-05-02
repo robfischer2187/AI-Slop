@@ -32,6 +32,7 @@ var phase: Phase = Phase.LOGIN
 var employee_id: String = "E-1031"
 var support_forced: bool = false
 var forced_yes_mode := false
+var start_message_visible := false
 
 
 func _ready() -> void:
@@ -122,6 +123,14 @@ func _show_welcome_then_prompt() -> void:
 
 
 func _on_support_yes() -> void:
+	# First YES shows the startup message popup. The OK click on that popup
+	# comes back here with `start_message_visible` already set, and then we finish.
+	if not start_message_visible:
+		start_message_visible = true
+		_show_start_message_popup()
+		return
+
+	start_message_visible = false
 	# In forced mode, YES means "you tried NO, too bad" but still continue.
 	support_forced = forced_yes_mode
 	_finish_startup()
@@ -161,6 +170,14 @@ func _set_prompt_forced_yes() -> void:
 	support_prompt.dialog_text = "SORRY. YOU HAVE NO OTHER OPTION."
 	support_prompt.get_ok_button().text = "YES"
 	support_prompt.get_cancel_button().hide()
+
+
+func _show_start_message_popup() -> void:
+	support_prompt.title = "STARTING"
+	support_prompt.dialog_text = "Great, lets start the game"
+	support_prompt.get_ok_button().text = "OK"
+	support_prompt.get_cancel_button().hide()
+	_popup_prompt_centered_in_pc_screen_clamped()
 
 
 func _popup_prompt_centered_in_pc_screen_clamped() -> void:
