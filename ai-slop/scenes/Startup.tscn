@@ -1,0 +1,118 @@
+[gd_scene format=3 uid="uid://dqwqscyrjbale"]
+
+[ext_resource type="Script" uid="uid://shgx88qq31fp" path="res://script/startupflow.gd" id="1_tkdkk"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tkdkk"]
+bg_color = Color(0.078431375, 0.078431375, 0.078431375, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_5g6lu"]
+bg_color = Color(0.21176471, 0.8235294, 0.41568628, 1)
+
+[node name="Control" type="Control" unique_id=597264864]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_tkdkk")
+
+[node name="LoginPanel" type="Control" parent="." unique_id=1508687675]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -150.0
+offset_top = -100.0
+offset_right = 150.0
+offset_bottom = 100.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="LoginButton" type="Button" parent="LoginPanel" unique_id=183089982]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -80.0
+offset_top = -20.0
+offset_right = 80.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "Login"
+icon_alignment = 1
+
+[node name="LoadingPanel" type="Control" parent="." unique_id=505666866]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ProgressBar" type="ProgressBar" parent="LoadingPanel" unique_id=1965252706]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 40.0
+offset_top = -60.0
+offset_right = -40.0
+offset_bottom = -30.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/background = SubResource("StyleBoxFlat_tkdkk")
+theme_override_styles/fill = SubResource("StyleBoxFlat_5g6lu")
+
+[node name="Loading" type="Label" parent="LoadingPanel" unique_id=348043069]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -60.0
+offset_top = -16.0
+offset_right = 60.0
+offset_bottom = 16.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "Loading..."
+horizontal_alignment = 1
+
+[node name="WelcomePanel" type="Control" parent="." unique_id=557477916]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="WelcomeLabel" type="Label" parent="WelcomePanel" unique_id=1338942726]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -120.0
+offset_top = -20.0
+offset_right = 120.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "Welcome employees"
+horizontal_alignment = 1
+
+[node name="SupportPrompt" type="AcceptDialog" parent="." unique_id=1279854504]
+title = "Support"
+size = Vector2i(340, 130)
+dialog_text = "Please contact support if you need help."
