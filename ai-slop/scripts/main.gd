@@ -45,7 +45,7 @@ var coworkers_default_texture: Texture
 func _ready() -> void:
 	var startup_flow: Node = $UIRoot/UIContainer/PCScreenArea/StartupFlow
 	startup_flow.startup_finished.connect(_on_startup_finished)
-	set_process(false) # stop _process until startup is done
+	set_process(false) 
 
 func _on_startup_finished(_support_forced: bool) -> void:
 	set_process(true)
