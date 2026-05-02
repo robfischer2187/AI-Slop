@@ -11,6 +11,9 @@ extends Node2D
 @onready var alastor_anim: AnimationPlayer = $AlastorSlopp/AnimationPlayer
 @onready var dialogue_label: Label = $UIRoot/DialogueLabel
 @onready var horror_mat: ShaderMaterial = $UIRoot/UIContainer/HorrorOverlay/EffectRect.material
+@onready var coworkers_texture: TextureRect = $Coworkers
+@onready var cursor_blocker: Control = $UIRoot/UIContainer/PCScreenArea/CursorBlockerArea
+@onready var fake_cursor: Sprite2D = $UIRoot/FakeCursor
 
 var strikes: int = 0
 var task_index: int = 0
@@ -25,6 +28,9 @@ var game_running: bool = true
 var task_timer: float = 5.0
 var current_time: float = 0.0
 
+var free_mouse: bool = false
+var virtual_mouse_pos: Vector2
+
 var tasks: Array = [
 	{"prompt": "FEED IT: DOGS", "correct": "DOGS", "wrong": "FLOWERS"},
 	{"prompt": "FEED IT: SMILING PEOPLE", "correct": "SMILING PEOPLE", "wrong": "EMPTY OFFICE"},
@@ -34,16 +40,17 @@ var tasks: Array = [
 ]
 
 var got_caught_this_watch: bool = false
+var coworkers_default_texture: Texture
 
 func _ready() -> void:
 	start_game()
-	
 	alastor_anim.play("walk")
 	alastor_anim.speed_scale = 0.4
-	
 	start_alastor_loop()
-	
 	horror_overlay.visible = true
+	coworkers_default_texture = coworkers_texture.texture
+	init_virtual_mouse()
+	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
 
 func _process(delta):
 	if not game_running:
@@ -55,6 +62,34 @@ func _process(delta):
 		miss_task()
 	
 	update_horror_shader()
+	update_virtual_mouse()
+	
+	if Input.is_action_just_pressed("debug_toggle_mouse"):
+		free_mouse = !free_mouse
+		
+		if free_mouse:
+			Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+		else:
+			Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
+	
+	fake_cursor.global_position = virtual_mouse_pos
+
+func init_virtual_mouse():
+	var rect = cursor_blocker.get_global_rect()
+	virtual_mouse_pos = rect.position + rect.size * 0.5
+	virtual_mouse_pos.y += rect.size.y * 0.1
+	Input.warp_mouse(virtual_mouse_pos)
+
+func update_virtual_mouse():
+	if free_mouse:
+		virtual_mouse_pos = get_global_mouse_position()
+		return
+	
+	var rect = cursor_blocker.get_global_rect()
+	var real = get_global_mouse_position()
+	
+	virtual_mouse_pos.x = clamp(real.x, rect.position.x, rect.end.x)
+	virtual_mouse_pos.y = clamp(real.y, rect.position.y, rect.end.y)
 
 func start_game() -> void:
 	strikes = 0
@@ -63,7 +98,6 @@ func start_game() -> void:
 	ai_score = 0
 	suspicion = 0.0
 	game_running = true
-	
 	load_task()
 
 func load_task() -> void:
@@ -90,13 +124,11 @@ func submit_input(input_name: String) -> void:
 		ai_score += 1
 		suspicion -= 0.1
 		suspicion = max(suspicion, 0)
-		
 		flash_feedback(Color(0, 1, 0))
 		punch_slot()
 	else:
 		sabotage_score += 1
 		suspicion += 0.3
-		
 		flash_feedback(Color(1, 0, 0))
 		trigger_glitch()
 	
@@ -108,14 +140,12 @@ func submit_input(input_name: String) -> void:
 
 func miss_task():
 	trigger_glitch()
-	
 	task_index += 1
 	load_task()
 
 func start_alastor_loop():
 	while game_running:
 		await get_tree().create_timer(randf_range(3.0, 6.0)).timeout
-		
 		if randf() < 0.6:
 			await alastor_watch_phase()
 
@@ -128,8 +158,6 @@ func alastor_watch_phase():
 	
 	alastor_anim.play("watch")
 	flash_feedback(Color(1, 1, 1))
-	
-	print("Alastor is watching...")
 	
 	horror_mat.set_shader_parameter("pulse_speed", 2.5)
 	horror_mat.set_shader_parameter("darkness", 0.25)
@@ -162,6 +190,9 @@ func get_caught_by_alastor() -> void:
 	strikes += 1
 	got_caught_this_watch = true
 	
+	coworkers_texture.texture = load("res://assets/art/AI GAME COWORKER CAUGHT (1).png")
+	reset_coworkers_texture_after_delay()
+	
 	if strikes == 1:
 		show_dialogue("What are you doing? I’m warning you…")
 	elif strikes == 2:
@@ -169,6 +200,14 @@ func get_caught_by_alastor() -> void:
 	elif strikes >= 3:
 		show_dialogue("What a shame. Should've listened to me... you'll still be part of It.")
 		trigger_neutral_ending()
+
+func reset_coworkers_texture_after_delay() -> void:
+	await get_tree().create_timer(randf_range(1.0, 2.0)).timeout
+	
+	if not game_running:
+		return
+	
+	coworkers_texture.texture = coworkers_default_texture
 
 func show_alastor_approval():
 	var lines = [
@@ -186,9 +225,9 @@ func show_alastor_approval():
 func finish_game() -> void:
 	game_running = false
 	
-	if sabotage_score > ai_score:
+	if sabotage_score >= 3:
 		trigger_good_ending()
-	elif ai_score > sabotage_score:
+	elif ai_score >= 3:
 		trigger_bad_ending()
 	else:
 		trigger_neutral_ending()

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://73osadeyxx6u"
-path="res://.godot/imported/AI GAME COWORKER CAUGHT (1).png-0322c9bb6706377ca6d73a216df6724d.ctex"
+uid="uid://dx6grwqxejgl6"
+path="res://.godot/imported/AI GAME COWORKER NORM (1).png-bb5d36814d00a8a3de702a61fb4e5877.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/AI GAME COWORKER CAUGHT (1).png"
-dest_files=["res://.godot/imported/AI GAME COWORKER CAUGHT (1).png-0322c9bb6706377ca6d73a216df6724d.ctex"]
+source_file="res://assets/art/AI GAME COWORKER NORM (1).png"
+dest_files=["res://.godot/imported/AI GAME COWORKER NORM (1).png-bb5d36814d00a8a3de702a61fb4e5877.ctex"]
 
 [params]
 

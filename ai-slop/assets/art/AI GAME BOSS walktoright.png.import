@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://canwr78lbimcb"
-path="res://.godot/imported/AI_GAME HEALTH 2.png-76576f92832cea158ffc8a8dcb6df7f6.ctex"
+uid="uid://v0ilcg4k860s"
+path="res://.godot/imported/AI GAME BOSS walktoright.png-cb731f427d7c537b4369acc69fc73569.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/AI_GAME HEALTH 2.png"
-dest_files=["res://.godot/imported/AI_GAME HEALTH 2.png-76576f92832cea158ffc8a8dcb6df7f6.ctex"]
+source_file="res://assets/art/AI GAME BOSS walktoright.png"
+dest_files=["res://.godot/imported/AI GAME BOSS walktoright.png-cb731f427d7c537b4369acc69fc73569.ctex"]
 
 [params]
 

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://v0ilcg4k860s"
-path="res://.godot/imported/AI GAME BOSS walktoright.png-db842ba778769d2d6614e9af26e4ac46.ctex"
+uid="uid://73osadeyxx6u"
+path="res://.godot/imported/AI GAME COWORKER CAUGHT (1).png-c2f9b4f2e5c29cbca51d1c4a5544f34e.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/AI GAME BOSS walktoright.png"
-dest_files=["res://.godot/imported/AI GAME BOSS walktoright.png-db842ba778769d2d6614e9af26e4ac46.ctex"]
+source_file="res://assets/art/AI GAME COWORKER CAUGHT (1).png"
+dest_files=["res://.godot/imported/AI GAME COWORKER CAUGHT (1).png-c2f9b4f2e5c29cbca51d1c4a5544f34e.ctex"]
 
 [params]
 
