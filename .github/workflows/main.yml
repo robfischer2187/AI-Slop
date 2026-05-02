@@ -10,29 +10,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      # Cache Godot import data to speed things up
-      - name: Cache Godot imports
-        uses: actions/cache@v4
-        with:
-          path: .import/
-          key: ${{ runner.os }}-godot-import-${{ hashFiles('**/*.tscn', '**/*.tres') }}
+      - uses: actions/checkout@v4
 
       - name: Setup Godot
-        uses: firebelley/godot-export@v4
+        uses: barichello/godot-ci@v6
         with:
-          godot-version: 4.2.2
-          export-debug: false
+          version: 4.2.2
 
-      - name: Import project (fails on errors)
+      - name: Import project
         run: godot --headless --import
 
-      - name: Basic run check (catches script errors)
+      - name: Check for errors
         run: godot --headless --quit
 
-      - name: Export (build) project
+      - name: Export
         run: |
           mkdir -p build
           godot --headless --export-release "Linux/X11" build/game.x86_64
