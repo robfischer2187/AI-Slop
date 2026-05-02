@@ -153,7 +153,7 @@ func _reset_prompt_to_default() -> void:
 
 func _set_prompt_forced_yes() -> void:
 	support_prompt.title = "COMPLIANCE CHECK"
-	support_prompt.dialog_text = "You Wish Just Press Yes."
+	support_prompt.dialog_text = "You Wish Just Press Yes"
 	support_prompt.get_ok_button().text = "YES"
 	support_prompt.get_cancel_button().hide()
 
