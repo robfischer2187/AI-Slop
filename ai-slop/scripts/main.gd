@@ -23,7 +23,7 @@ var ai_score: int = 0
 var suspicion: float = 0.0
 
 var is_being_watched: bool = false
-var game_running: bool = true
+var game_running: bool = false
 
 var task_timer: float = 5.0
 var current_time: float = 0.0
@@ -43,6 +43,13 @@ var got_caught_this_watch: bool = false
 var coworkers_default_texture: Texture
 
 func _ready() -> void:
+	var startup_flow: Node = $UIRoot/UIContainer/PCScreenArea/StartupFlow
+	startup_flow.startup_finished.connect(_on_startup_finished)
+	set_process(false) 
+
+func _on_startup_finished(_support_forced: bool) -> void:
+	set_process(true)
+	game_running = true
 	start_game()
 	alastor_anim.play("walk")
 	alastor_anim.speed_scale = 0.4
