@@ -2,7 +2,7 @@ extends Control
 
 @onready var main = get_tree().get_root().get_node("Main")
 
-func _process(delta):
+func _process(_delta):
 	var hovering := false
 	
 	for item in get_tree().get_nodes_in_group("draggable"):
@@ -17,14 +17,16 @@ func _gui_input(event):
 
 func check_for_drop():
 	for item in get_tree().get_nodes_in_group("draggable"):
-		if item.get_global_rect().intersects(get_global_rect()):
+		var dist = item.global_position.distance_to(global_position)
+		
+		if dist < 60:
 			await snap_and_submit(item)
 
 func snap_and_submit(item):
 	item.global_position = global_position
-	await get_tree().create_timer(0.1).timeout
+	await get_tree().create_timer(0.05).timeout
 	main.submit_input(item.item_name)
 	reset_item(item)
 
 func reset_item(item):
-	item.position = item.start_position
+	item.queue_free()

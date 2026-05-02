@@ -1,0 +1,13 @@
+[gd_scene load_steps=2 format=3 uid="uid://dq3q11t3cpjj4"]
+
+[ext_resource type="Script" uid="uid://ciq6ut2jlqp1h" path="res://scripts/draggable_item.gd" id="1_66nxq"]
+
+[node name="DraggableItem" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("1_66nxq")
+
+[node name="TextureRect" type="TextureRect" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
