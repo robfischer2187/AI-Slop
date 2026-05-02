@@ -10,6 +10,7 @@ extends Node2D
 @onready var alastor = $AlastorSlopp
 @onready var alastor_anim: AnimationPlayer = $AlastorSlopp/AnimationPlayer
 @onready var dialogue_label: Label = $UIRoot/DialogueLabel
+@onready var horror_mat: ShaderMaterial = $UIRoot/UIContainer/HorrorOverlay/EffectRect.material
 
 var strikes: int = 0
 var task_index: int = 0
@@ -32,12 +33,17 @@ var tasks: Array = [
 	{"prompt": "FEED IT: HUMAN FEAR", "correct": "HUMAN FEAR", "wrong": "HOPE"}
 ]
 
-# READY
+var got_caught_this_watch: bool = false
+
 func _ready() -> void:
 	start_game()
+	
 	alastor_anim.play("walk")
 	alastor_anim.speed_scale = 0.4
+	
 	start_alastor_loop()
+	
+	horror_overlay.visible = true
 
 func _process(delta):
 	if not game_running:
@@ -47,8 +53,9 @@ func _process(delta):
 	
 	if current_time <= 0:
 		miss_task()
+	
+	update_horror_shader()
 
-# GAME FLOW
 func start_game() -> void:
 	strikes = 0
 	task_index = 0
@@ -56,6 +63,7 @@ func start_game() -> void:
 	ai_score = 0
 	suspicion = 0.0
 	game_running = true
+	
 	load_task()
 
 func load_task() -> void:
@@ -67,7 +75,6 @@ func load_task() -> void:
 	task_text.text = task["prompt"]
 	current_time = task_timer
 	
-	# escalate difficulty
 	if task_index > 2:
 		task_timer = 4.0
 	if task_index > 4:
@@ -83,11 +90,13 @@ func submit_input(input_name: String) -> void:
 		ai_score += 1
 		suspicion -= 0.1
 		suspicion = max(suspicion, 0)
+		
 		flash_feedback(Color(0, 1, 0))
 		punch_slot()
 	else:
 		sabotage_score += 1
 		suspicion += 0.3
+		
 		flash_feedback(Color(1, 0, 0))
 		trigger_glitch()
 	
@@ -98,12 +107,11 @@ func submit_input(input_name: String) -> void:
 	load_task()
 
 func miss_task():
-	strikes += 1
 	trigger_glitch()
+	
 	task_index += 1
 	load_task()
 
-# ALASTOR LOOP
 func start_alastor_loop():
 	while game_running:
 		await get_tree().create_timer(randf_range(3.0, 6.0)).timeout
@@ -116,22 +124,28 @@ func alastor_watch_phase():
 		return
 	
 	is_being_watched = true
+	got_caught_this_watch = false
 	
 	alastor_anim.play("watch")
 	flash_feedback(Color(1, 1, 1))
-	horror_overlay.visible = true
 	
 	print("Alastor is watching...")
 	
-	await get_tree().create_timer(1.5).timeout
+	horror_mat.set_shader_parameter("pulse_speed", 2.5)
+	horror_mat.set_shader_parameter("darkness", 0.25)
+	horror_mat.set_shader_parameter("flicker_strength", 0.08)
+	
+	await get_tree().create_timer(2.5).timeout
 	
 	check_player_behavior()
 	
+	if not got_caught_this_watch:
+		await get_tree().create_timer(0.5).timeout
+		show_alastor_approval()
+	
 	is_being_watched = false
 	alastor_anim.play("walk")
-	horror_overlay.visible = false
 
-# DETECTION
 func check_player_behavior():
 	if task_index >= tasks.size():
 		return
@@ -144,9 +158,9 @@ func check_player_behavior():
 			trigger_glitch()
 			return
 
-# STRIKES
 func get_caught_by_alastor() -> void:
 	strikes += 1
+	got_caught_this_watch = true
 	
 	if strikes == 1:
 		show_dialogue("What are you doing? I’m warning you…")
@@ -156,7 +170,19 @@ func get_caught_by_alastor() -> void:
 		show_dialogue("What a shame. Should've listened to me... you'll still be part of It.")
 		trigger_neutral_ending()
 
-# ENDINGS
+func show_alastor_approval():
+	var lines = [
+		"Good job...",
+		"It appreciates your work.",
+		"Yes... feed it.",
+		"Make It stronger.",
+		"That's better.",
+		"Keep going.",
+		"Remember to smile."
+	]
+	
+	show_dialogue(lines.pick_random())
+
 func finish_game() -> void:
 	game_running = false
 	
@@ -179,7 +205,6 @@ func trigger_bad_ending() -> void:
 	game_running = false
 	print("AI CREATURE ON THE LOOSE!")
 
-# VISUAL FEEDBACK
 func flash_feedback(color: Color):
 	feedback_flash.color = color
 	feedback_flash.modulate.a = 0.6
@@ -193,6 +218,10 @@ func trigger_glitch():
 	glitch_overlay.modulate.a = 0.25
 	tween.tween_property(glitch_overlay, "modulate:a", 0.0, 0.1)
 	
+	horror_mat.set_shader_parameter("chromatic_strength", 0.01)
+	horror_mat.set_shader_parameter("flicker_strength", 0.15)
+	horror_mat.set_shader_parameter("darkness", 0.35)
+	
 	var original_pos = pc_screen.position
 	
 	Engine.time_scale = 0.8
@@ -205,16 +234,27 @@ func trigger_glitch():
 		await get_tree().create_timer(0.02).timeout
 	
 	pc_screen.position = original_pos
+	
+	update_horror_shader()
 
 func punch_slot():
 	var tween = create_tween()
 	tween.tween_property(slot, "scale", Vector2(1.1, 1.1), 0.05)
 	tween.tween_property(slot, "scale", Vector2(1, 1), 0.1)
 
-# DIALOGUE
 func show_dialogue(text: String):
 	dialogue_label.text = text
 	dialogue_label.modulate.a = 1
 	
 	var tween = create_tween()
 	tween.tween_property(dialogue_label, "modulate:a", 0.0, 2.0)
+
+func update_horror_shader():
+	horror_mat.set_shader_parameter("vignette_strength", 0.9 + suspicion * 0.9)
+	horror_mat.set_shader_parameter("darkness", 0.08 + suspicion * 0.22)
+	horror_mat.set_shader_parameter("pulse_strength", 0.04 + suspicion * 0.08)
+	horror_mat.set_shader_parameter("pulse_speed", 1.2 + suspicion * 0.8)
+	horror_mat.set_shader_parameter("grain_strength", 0.03 + suspicion * 0.08)
+	horror_mat.set_shader_parameter("chromatic_strength", 0.001 + suspicion * 0.003)
+	horror_mat.set_shader_parameter("scanline_strength", 0.02 + suspicion * 0.04)
+	horror_mat.set_shader_parameter("flicker_strength", 0.01 + suspicion * 0.05)
