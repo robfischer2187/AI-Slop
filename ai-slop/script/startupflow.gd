@@ -15,6 +15,8 @@ enum Phase { LOGIN, LOADING, WELCOME, PROMPT }
 
 @onready var support_prompt: AcceptDialog = %SupportPrompt
 
+@export var debug_fast_mode := true
+
 var phase: Phase = Phase.LOGIN
 var employee_id: String = "E-1031"
 var support_forced: bool = false
@@ -80,7 +82,7 @@ func _play_glitch_and_force_yes() -> void:
 	# Fake “glitch”: rapid re-popup + short delays
 	await get_tree().create_timer(0.08).timeout
 	support_prompt.popup_centered()
-	await get_tree().create_timer(0.08).timeout
+	await get_tree().create_timer(0.08).timeout 
 	support_prompt.hide()
 
 	# Force accept
