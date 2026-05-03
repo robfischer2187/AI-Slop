@@ -17,7 +17,8 @@ enum Phase { LOGIN, LOADING, WELCOME, PROMPT }
 
 @onready var support_prompt: ConfirmationDialog = get_node_or_null("SupportPrompt")
 
-@onready var alastor: Node2D = get_node_or_null("../../../../AlastorSlopp")
+@onready var alastor: Node2D = get_node_or_null("../../../../AlastorRoot")
+@onready var slot: Panel = get_node_or_null("../InputSlots/Slot")
 
 # The Control to center the dialog within.
 # By default we try to use our parent (PCScreenArea) if it's a Control.
@@ -149,6 +150,9 @@ func _on_support_yes() -> void:
 	start_message_visible = false
 	if alastor != null:
 		alastor.visible = true
+	
+	if slot != null:
+		slot.visible = true
 	
 	support_forced = forced_yes_mode
 	_finish_startup()

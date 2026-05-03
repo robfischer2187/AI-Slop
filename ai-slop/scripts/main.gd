@@ -7,10 +7,13 @@ extends Node2D
 @onready var feedback_flash: ColorRect = $UIRoot/UIContainer/PCScreenArea/FeedbackFlash
 @onready var glitch_overlay: ColorRect = $UIRoot/UIContainer/PCScreenArea/GlitchOverlay
 @onready var pc_screen: Control = $UIRoot/UIContainer/PCScreenArea
-@onready var alastor = $AlastorSlopp
-@onready var alastor_anim: AnimationPlayer = $AlastorSlopp/AnimationPlayer
+@onready var alastor_root = $AlastorRoot
+@onready var alastor = $AlastorRoot/AlastorSlopp
+@onready var alastor_anim = $AlastorRoot/AlastorSlopp/AnimationPlayer
+@onready var alastor_sprite = $AlastorRoot/AlastorSlopp/Sprite2D
 @onready var dialogue_label: Label = $UIRoot/UIContainer/PCScreenArea/Dialogue/DialogueLabel
 @onready var horror_mat: ShaderMaterial = $UIRoot/UIContainer/HorrorOverlay/EffectRect.material
+@onready var screen_mat: ShaderMaterial = $UIRoot/UIContainer/PCScreenArea/ScreenOverlay/EffectRect.material
 @onready var coworkers_texture: TextureRect = $Coworkers
 @onready var cursor_blocker: Control = $UIRoot/UIContainer/PCScreenArea/CursorBlockerArea
 @onready var fake_cursor: Sprite2D = $UIRoot/FakeCursor
@@ -44,8 +47,27 @@ var wobble_time: float = 0.0
 
 var got_caught_this_watch: bool = false
 var coworkers_default_texture: Texture
-var walk_resume_time: float = 0.0
 var scored_during_watch: bool = false
+var walking_right: bool = true
+
+var breather: bool = false
+
+var walk_start_time: float = 0.0
+var glitch_delay_after_walk_start: float = 2.0
+
+var alastor_roam_glitch_timer: float = 0.0
+var alastor_roam_glitch_interval: float = 1.8
+
+var alastor_sprite_base_position: Vector2
+var alastor_sprite_base_rotation: float = 0.0
+var alastor_glitching_visual: bool = false
+var alastor_anim_locked: bool = false
+
+var next_allowed_check_time: float = 0.0
+
+var next_glitch_time: float = 0.0
+
+var meltdown_active := false
 
 var task_pool: Array = [
 	[
@@ -85,7 +107,7 @@ var task_pool: Array = [
 func _ready() -> void:
 	var startup_flow: Node = $UIRoot/UIContainer/PCScreenArea/StartupFlow
 	startup_flow.startup_finished.connect(_on_startup_finished)
-	set_process(false) 
+	set_process(false)
 
 	mistake_player = AudioStreamPlayer2D.new()
 	mistake_player.stream = preload("res://assets/sounds/mistake-sound.mp3")
@@ -107,12 +129,12 @@ func _on_startup_finished(_support_forced: bool) -> void:
 	coworkers_default_texture = coworkers_texture.texture
 	init_virtual_mouse()
 	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
-	alastor_anim.play("walk")
-	alastor_anim.seek(0, true)
 	start_alastor_loop()
 	update_ui()
-	
 	fake_cursor.z_index = 100
+	alastor_sprite_base_position = alastor_sprite.position
+	alastor_sprite_base_rotation = alastor_sprite.rotation_degrees
+	alastor_root.visible = false
 
 func _process(delta):
 	if not game_running:
@@ -124,19 +146,17 @@ func _process(delta):
 		miss_task()
 	
 	update_suspicion(delta)
+	update_alastor_roaming_glitch(delta)
 	update_horror_shader()
 	update_virtual_mouse()
 	
 	wobble_time += delta
 	
-	if alastor_anim.is_playing() and alastor_anim.current_animation == "walk":
-		var offset_y = sin(wobble_time * 2.5) * 6.0
+	if not alastor_glitching_visual and alastor_anim.is_playing() and (alastor_anim.current_animation == "walk" or alastor_anim.current_animation == "walk_left"):
+		ensure_alastor_visible()
 		var rot = sin(wobble_time * 1.7) * 3.0
-		alastor.position.y += offset_y * delta * 5
-		alastor.rotation_degrees = rot
-		
-		if randf() < 0.02:
-			alastor.position.x += randf_range(-2, 2)
+		alastor_sprite.position = alastor_sprite_base_position + Vector2(0, sin(wobble_time * 2.5) * 6.0)
+		alastor_sprite.rotation_degrees = alastor_sprite_base_rotation + rot
 	
 	if Input.is_action_just_pressed("debug_toggle_mouse"):
 		free_mouse = !free_mouse
@@ -147,12 +167,20 @@ func _process(delta):
 			Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
 	
 	fake_cursor.global_position = virtual_mouse_pos
+	
+	var now = Time.get_ticks_msec() / 1000.0
+	screen_mat.set_shader_parameter("glitch_time", now)
+	
+	var base_glitch = 0.004 + suspicion * 0.045
+	var pulse = sin(Time.get_ticks_msec() * 0.0015) * 0.004
+	screen_mat.set_shader_parameter("glitch_intensity", max(base_glitch + pulse, 0.0))
+	
+	trigger_black_flicker()
 
 func init_virtual_mouse():
 	var rect = cursor_blocker.get_global_rect()
 	virtual_mouse_pos = rect.position + rect.size * 0.5
 	virtual_mouse_pos.y += rect.size.y * 0.1
-	Input.warp_mouse(virtual_mouse_pos)
 
 func update_virtual_mouse():
 	if free_mouse:
@@ -223,8 +251,7 @@ func submit_input(input_name: String) -> void:
 			show_alastor_approval()
 	else:
 		sabotage_score += 1
-		suspicion += 0.3
-		mistake_player.play()
+		suspicion += 0.45 if is_being_watched else 0.3
 		flash_feedback(Color(1, 0, 0))
 		trigger_glitch()
 		
@@ -243,43 +270,179 @@ func miss_task():
 		return
 	
 	input_locked = true
-	suspicion += 0.2
+	suspicion += 0.12
 	trigger_glitch()
 	task_index += 1
 	update_ui()
 	load_task()
 
 func update_suspicion(delta):
-	suspicion = clamp(suspicion - delta * 0.03, 0.0, 1.0)
+	var decay = delta * 0.025
+	
+	if is_being_watched:
+		suspicion += delta * 0.035
+	
+	if current_time < task_timer * 0.35:
+		suspicion += delta * 0.015
+	
+	if sabotage_score > ai_score and sabotage_score > 1:
+		suspicion += delta * 0.01
+	
+	suspicion = clamp(suspicion - decay, 0.0, 1.0)
+
+func update_alastor_roaming_glitch(delta):
+	if not game_running:
+		return
+	
+	if is_being_watched:
+		return
+	
+	if breather:
+		return
+	
+	if alastor_anim_locked and not (
+		alastor_anim.current_animation == "walk" or 
+		alastor_anim.current_animation == "walk_left"
+	):
+		return
+	
+	if alastor_anim.current_animation != "walk" and alastor_anim.current_animation != "walk_left":
+		return
+	
+	alastor_roam_glitch_timer -= delta
+	
+	if alastor_roam_glitch_timer > 0:
+		return
+	
+	alastor_roam_glitch_timer = alastor_roam_glitch_interval
+	
+	var now = Time.get_ticks_msec() / 1000.0
+	
+	if now - walk_start_time < glitch_delay_after_walk_start:
+		return
+	
+	if now < next_allowed_check_time:
+		return
+	
+	var chance = 0.08 + suspicion * 0.18
+	
+	if randf() < chance:
+		await alastor_mid_walk_check()
+
+func alastor_mid_walk_check():
+	if is_being_watched:
+		return
+	
+	if not game_running:
+		return
+	
+	is_being_watched = true
+	got_caught_this_watch = false
+	scored_during_watch = false
+	
+	await alastor_pre_watch_glitch()
+	
+	play_watch_animation()
+	trigger_glitch()
+	
+	var watch_time = lerp(1.2, 2.8, suspicion)
+	await get_tree().create_timer(watch_time).timeout
+	
+	if not game_running:
+		return
+	
+	if got_caught_this_watch:
+		pass
+	elif sabotage_score >= ai_score * 3 and sabotage_score > 0:
+		await alastor_micro_glitch()
+		show_alastor_rage()
+		await get_tree().create_timer(1.5).timeout
+		get_caught_by_alastor()
+	elif sabotage_score >= ai_score * 2 and sabotage_score > 0:
+		show_alastor_angry()
+	elif ai_score >= sabotage_score * 3 and ai_score > 0:
+		show_alastor_excited()
+	elif ai_score >= sabotage_score * 2 and ai_score > 0:
+		show_alastor_impressed()
+	elif scored_during_watch:
+		pass
+	else:
+		show_alastor_disappointment()
+	
+	await alastor_glitch_transition()
+	
+	is_being_watched = false
+	
+	restore_walk_state()
+	
+	next_allowed_check_time = Time.get_ticks_msec() / 1000.0 + randf_range(3.5, 6.0)
 
 func start_alastor_loop():
 	while game_running:
-		alastor_anim.play("walk")
-		alastor_anim.speed_scale = randf_range(0.12, 0.22)
 		
-		var walk_time = randf_range(6.0, 10.0)
-		await get_tree().create_timer(walk_time).timeout
-		
+		await play_walk_animation()
+
 		if not game_running:
 			return
-		
-		var pause_time = randf_range(3.5, 6.5)
-		await get_tree().create_timer(pause_time).timeout
-		
-		if not game_running:
-			return
-		
+
+		breather = true
+
 		await alastor_glitch_transition()
-		
+		alastor_root.visible = false
+
+		var breather_time = randf_range(7.5, 12.5)
+		await get_tree().create_timer(breather_time).timeout
+
+		breather = false
+
 		if not game_running:
 			return
-		
+
 		var watch_chance = 0.25 + suspicion * 0.6
-		
+
 		if randf() < watch_chance:
 			await alastor_watch_phase()
-		else:
-			alastor_anim.play()
+
+func play_walk_animation():
+	if alastor_anim_locked:
+		return
+	
+	alastor_anim_locked = true
+	
+	var sprite: Sprite2D = alastor.get_node("Sprite2D")
+	var target_anim = "walk" if walking_right else "walk_left"
+
+	alastor_root.visible = false
+
+	var wait_time = randf_range(3.5, 6.5)
+	await get_tree().create_timer(wait_time).timeout
+
+	if not game_running:
+		alastor_anim_locked = false
+		return
+
+	# 👇 THIS is the important order
+	alastor_root.visible = true
+	alastor_sprite.visible = true
+
+	walk_start_time = Time.get_ticks_msec() / 1000.0
+
+	if walking_right:
+		sprite.texture = preload("res://assets/art/AI GAME BOSS walktoright.png")
+	else:
+		sprite.texture = preload("res://assets/art/AI GAME BOSS walkleft.png")
+
+	alastor_anim.play(target_anim)
+
+	await alastor_anim.animation_finished
+
+	walking_right = !walking_right
+
+	alastor_anim_locked = false
+
+func ensure_alastor_visible():
+	alastor_root.visible = true
+	alastor_sprite.visible = true
 
 func alastor_watch_phase():
 	if not game_running:
@@ -289,12 +452,11 @@ func alastor_watch_phase():
 	got_caught_this_watch = false
 	scored_during_watch = false
 	
-	await get_tree().create_timer(0.15).timeout
-	
-	var t = alastor_anim.current_animation_position
-	
-	alastor_anim.play("watch")
+	await alastor_pre_watch_glitch()
+
+	play_watch_animation()
 	flash_feedback(Color(1, 1, 1))
+	trigger_glitch()
 	
 	var watch_time = lerp(2.0, 4.5, suspicion)
 	await get_tree().create_timer(watch_time).timeout
@@ -313,6 +475,10 @@ func alastor_watch_phase():
 		get_caught_by_alastor()
 	elif sabotage_score >= ai_score * 2 and sabotage_score > 0:
 		show_alastor_angry()
+	elif ai_score >= sabotage_score * 3 and ai_score > 0:
+		show_alastor_excited()
+	elif ai_score >= sabotage_score * 2 and ai_score > 0:
+		show_alastor_impressed()
 	elif scored_during_watch:
 		pass
 	else:
@@ -321,35 +487,95 @@ func alastor_watch_phase():
 	is_being_watched = false
 	
 	await alastor_glitch_transition()
-	
-	alastor_anim.play("walk")
-	alastor_anim.seek(t, true)
+
+	walking_right = !walking_right
+	restore_walk_state()
 	alastor_anim.speed_scale = randf_range(0.12, 0.22)
 
+	next_allowed_check_time = Time.get_ticks_msec() / 1000.0 + randf_range(3.5, 6.0)
+
+func alastor_pre_watch_glitch():
+	alastor_glitching_visual = true
+	
+	var original_pos = alastor_sprite_base_position
+	var original_rot = alastor_sprite_base_rotation
+	
+	var steps = 6 + int(suspicion * 6)
+	
+	for i in range(steps):
+		var t = float(i) / steps
+		
+		var shake_x = lerp(4.0, 18.0, t)
+		var shake_y = lerp(3.0, 14.0, t)
+		
+		alastor_sprite.position = original_pos + Vector2(
+			randf_range(-shake_x, shake_x),
+			randf_range(-shake_y, shake_y)
+		)
+		
+		alastor_sprite.rotation_degrees = original_rot + randf_range(-10, 10) * (1.0 + t * 2.0)
+		alastor_sprite.visible = randf() > (0.7 - t * 0.4)
+		
+		if t > 0.6 and randf() < 0.35:
+			alastor_sprite.position = original_pos + Vector2(
+				randf_range(-60, 60),
+				randf_range(-40, 40)
+			)
+		
+		await get_tree().create_timer(lerp(0.05, 0.015, t)).timeout
+	
+	ensure_alastor_visible()
+	alastor_sprite.position = original_pos
+	alastor_sprite.rotation_degrees = original_rot
+	
+	alastor_glitching_visual = false
+
+func play_watch_animation():
+	var sprite: Sprite2D = alastor.get_node("Sprite2D")
+
+	alastor_anim.stop()
+
+	if walking_right:
+		sprite.texture = preload("res://assets/art/AI GAME BOSS look right.png")
+	else:
+		sprite.texture = preload("res://assets/art/AI GAME BOSS lookleft.png")
+
+	alastor_anim.play("watch")
+
+func restore_walk_state():
+	var sprite: Sprite2D = alastor.get_node("Sprite2D")
+
+	if walking_right:
+		sprite.texture = preload("res://assets/art/AI GAME BOSS walktoright.png")
+		if alastor_anim.current_animation != "walk":
+			alastor_anim.play("walk")
+	else:
+		sprite.texture = preload("res://assets/art/AI GAME BOSS walkleft.png")
+		if alastor_anim.current_animation != "walk_left":
+			alastor_anim.play("walk_left")
+
 func show_alastor_angry():
-	var lines = [
+	show_dialogue([
 		"What are you doing...",
 		"This is not acceptable.",
 		"You are feeding it wrong.",
 		"Fix this. Now.",
 		"I see what you're doing.",
 		"This is inefficient."
-	]
-	show_dialogue(lines.pick_random())
+	].pick_random())
 
 func show_alastor_rage():
-	var lines = [
+	show_dialogue([
 		"Enough.",
 		"You are sabotaging it.",
 		"I will not tolerate this.",
 		"You think I wouldn't notice?",
 		"This ends now.",
 		"You're done."
-	]
-	show_dialogue(lines.pick_random())
+	].pick_random())
 
 func show_alastor_disappointment():
-	var lines = [
+	show_dialogue([
 		"...",
 		"Why are you hesitating?",
 		"It is waiting.",
@@ -357,8 +583,27 @@ func show_alastor_disappointment():
 		"You're wasting time.",
 		"This is disappointing.",
 		"I expected more from you."
-	]
-	show_dialogue(lines.pick_random())
+	].pick_random())
+
+func show_alastor_impressed():
+	show_dialogue([
+		"Efficient.",
+		"You're exceeding expectations.",
+		"It grows quickly because of you.",
+		"This is... optimal.",
+		"You're learning fast.",
+		"Good. Very good."
+	].pick_random())
+
+func show_alastor_excited():
+	show_dialogue([
+		"YES…",
+		"This is perfect.",
+		"Keep feeding It.",
+		"You're making It stronger.",
+		"Don't stop now.",
+		"This is what I wanted."
+	].pick_random())
 
 func get_caught_by_alastor() -> void:
 	if not game_running:
@@ -378,20 +623,20 @@ func get_caught_by_alastor() -> void:
 	if strikes == 1:
 		show_dialogue("What are you doing? I’m warning you…")
 	elif strikes == 2:
-		show_dialogue("No, you’re killing It! This… this is your final warning.")
+		show_dialogue("You’re killing It! This… this is your final warning.")
 	elif strikes >= 3:
 		show_dialogue("What a shame. Don't worry... you'll still be part of It.")
 		await get_tree().create_timer(3).timeout
 		trigger_neutral_ending()
 
 func reset_coworkers_texture_after_delay() -> void:
-	await get_tree().create_timer(randf_range(1.0, 2.0)).timeout
+	await get_tree().create_timer(randf_range(2.0, 5.0)).timeout
 	
 	if game_running:
 		coworkers_texture.texture = coworkers_default_texture
 
 func show_alastor_approval():
-	var lines = [
+	show_dialogue([
 		"Good job...",
 		"It appreciates your work.",
 		"Yes... feed it.",
@@ -399,43 +644,62 @@ func show_alastor_approval():
 		"That's better.",
 		"Keep going.",
 		"Remember to smile."
-	]
-	show_dialogue(lines.pick_random())
+	].pick_random())
 
 func alastor_glitch_transition():
-	var original_pos = alastor.position
-	var original_rot = alastor.rotation_degrees
+	
+	alastor_glitching_visual = true
 	
 	var intensity = lerp(4, 10, suspicion)
+	var original_pos = alastor_sprite_base_position
+	var original_rot = alastor_sprite_base_rotation
 	
 	for i in range(int(intensity)):
-		alastor.position = original_pos + Vector2(randf_range(-10, 10), randf_range(-8, 8))
-		alastor.rotation_degrees = original_rot + randf_range(-8, 8)
+		alastor_sprite.position = original_pos + Vector2(
+			randf_range(-12, 12),
+			randf_range(-10, 10)
+		)
 		
-		if randf() < 0.5:
-			alastor.visible = false
-		else:
-			alastor.visible = true
+		alastor_sprite.rotation_degrees = original_rot + randf_range(-25, 25)
+		alastor_sprite.visible = randf() > 0.5
 		
-		await get_tree().create_timer(0.03).timeout
+		if randf() < 0.25:
+			alastor_sprite.position = original_pos + Vector2(
+				randf_range(-40, 40),
+				randf_range(-30, 30)
+			)
+		
+		await get_tree().create_timer(randf_range(0.015, 0.04)).timeout
 	
-	alastor.visible = true
-	alastor.position = original_pos
-	alastor.rotation_degrees = original_rot
+	ensure_alastor_visible()
+	alastor_sprite.position = original_pos
+	alastor_sprite.rotation_degrees = original_rot
+	
+	alastor_glitching_visual = false
 
 func alastor_micro_glitch():
-	var original_pos = alastor.position
-	var original_rot = alastor.rotation_degrees
 	
-	for i in range(3):
-		alastor.position = original_pos + Vector2(randf_range(-6, 6), randf_range(-4, 4))
-		alastor.rotation_degrees = original_rot + randf_range(-6, 6)
-		alastor.visible = randf() > 0.3
-		await get_tree().create_timer(0.02).timeout
+	alastor_glitching_visual = true
 	
-	alastor.visible = true
-	alastor.position = original_pos
-	alastor.rotation_degrees = original_rot
+	var original_pos = alastor_sprite_base_position
+	var original_rot = alastor_sprite_base_rotation
+	
+	for i in range(5):
+		alastor_sprite.position = original_pos + Vector2(
+			randf_range(-10, 10),
+			randf_range(-8, 8)
+		)
+		
+		alastor_sprite.rotation_degrees = original_rot + randf_range(-15, 15)
+		alastor_sprite.visible = randf() > 0.4
+		
+		await get_tree().create_timer(0.015).timeout
+	
+	ensure_alastor_visible()
+	alastor_sprite.position = original_pos
+	alastor_sprite.rotation_degrees = original_rot
+	
+	alastor_glitching_visual = false
 
 func check_end_conditions():
 	if sabotage_score >= 24:
@@ -443,25 +707,183 @@ func check_end_conditions():
 	elif ai_score >= 24:
 		trigger_bad_ending()
 
-func finish_game() -> void:
-	if sabotage_score > ai_score:
-		trigger_good_ending()
-	elif ai_score > sabotage_score:
-		trigger_bad_ending()
-	else:
-		trigger_neutral_ending()
-
 func trigger_good_ending() -> void:
 	game_running = false
 	print("AI COMPANY CLOSES!")
 
 func trigger_neutral_ending() -> void:
 	game_running = false
+	start_neutral_meltdown()
 	print("SCANDAL AT SMAILE!")
 
 func trigger_bad_ending() -> void:
 	game_running = false
 	print("AI CREATURE ON THE LOOSE!")
+
+func start_neutral_meltdown():
+	meltdown_active = true
+	
+	alastor_root.visible = true
+	alastor_anim.stop()
+	alastor_anim_locked = true
+	is_being_watched = true
+	
+	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
+	
+	await neutral_glitch_sequence()
+
+func neutral_glitch_sequence():
+	var duration = 6.0
+	var elapsed = 0.0
+	
+	var rect = pc_screen.get_global_rect()
+	var clones: Array = []
+	
+	while elapsed < duration:
+		elapsed += 0.04
+		await get_tree().create_timer(0.04).timeout
+		
+		# 🔴 BASE POSITION (constantly shifting anchor)
+		var base_pos = Vector2(
+			randf_range(rect.position.x, rect.end.x),
+			randf_range(rect.position.y, rect.end.y)
+		)
+		
+		# 🔴 MULTI-JITTER IN ONE FRAME (this is key)
+		for i in range(3):
+			alastor_sprite.global_position = base_pos + Vector2(
+				randf_range(-40, 40),
+				randf_range(-30, 30)
+			)
+			await get_tree().create_timer(0.005).timeout
+		
+		# 🔴 SCALE + ROTATION CHAOS
+		var s = randf_range(0.5, 2.2)
+		alastor_sprite.scale = Vector2(s, s)
+		alastor_sprite.rotation_degrees = randf_range(-180, 180)
+		
+		# 🔴 FLICKER DESYNC
+		alastor_sprite.visible = randf() > 0.15
+		
+		# 🔴 RANDOM ANIMATION BREAKS
+		if randf() < 0.25:
+			alastor_anim.play(["walk", "walk_left", "watch"].pick_random())
+			alastor_anim.seek(randf_range(0, 0.2), true)
+		
+		# 🔴 SPAWN AFTERIMAGE CLONES (THIS MAKES IT FEEL INSANE)
+		if randf() < 0.35:
+			var clone = Sprite2D.new()
+			clone.texture = alastor_sprite.texture
+			clone.global_position = alastor_sprite.global_position
+			clone.rotation_degrees = alastor_sprite.rotation_degrees
+			clone.scale = alastor_sprite.scale * randf_range(0.8, 1.2)
+			clone.modulate = Color(1, 1, 1, randf_range(0.2, 0.6))
+			clone.z_index = 99
+			
+			add_child(clone)
+			clones.append(clone)
+			
+			# fade out clone
+			var t = create_tween()
+			t.tween_property(clone, "modulate:a", 0.0, randf_range(0.15, 0.4))
+			t.tween_callback(clone.queue_free)
+		
+		# 🔴 SCREEN STILL SUPPORTS CHAOS (but secondary now)
+		screen_mat.set_shader_parameter("glitch_intensity", randf_range(0.8, 2.5))
+		screen_mat.set_shader_parameter("glitch_time", Time.get_ticks_msec() * randf_range(0.002, 0.02))
+		
+		pc_screen.position += Vector2(
+			randf_range(-6, 6),
+			randf_range(-6, 6)
+		)
+		
+		if randf() < 0.35:
+			spawn_meltdown_text([
+				"NO.",
+				"STOP.",
+				"YOU BROKE IT.",
+				"IT NEEDS MORE.",
+				"WHY.",
+				"FIX IT.",
+				"YOU CAN'T STOP IT.",
+				"TOO LATE."
+			].pick_random())
+	
+	# CLEANUP (just in case)
+	for c in clones:
+		if is_instance_valid(c):
+			c.queue_free()
+	
+	await final_neutral_snap()
+
+func spawn_meltdown_text(text: String):
+	var lbl = Label.new()
+	lbl.text = text
+	
+	var rect = pc_screen.get_rect()
+	var center = rect.size * 0.5
+	
+	lbl.position = center + Vector2(
+		randf_range(-400, 400),
+		randf_range(-250, 250)
+	)
+	
+	var font = load("res://assets/fonts/Sniglet-Regular.ttf")
+	lbl.add_theme_font_override("font", font)
+	lbl.add_theme_font_size_override("font_size", 48)
+	
+	if randf() < 0.2:
+		lbl.add_theme_font_size_override("font_size", randi_range(64, 110))
+	
+	lbl.add_theme_color_override("font_color", Color("e7ffe7"))
+	lbl.add_theme_color_override("font_outline_color", Color.BLACK)
+	lbl.add_theme_constant_override("outline_size", 10)
+	
+	lbl.rotation_degrees = randf_range(-25, 25)
+	
+	var s = randf_range(0.9, 1.6)
+	lbl.scale = Vector2(s, s)
+	
+	lbl.z_index = 999
+	
+	pc_screen.add_child(lbl)
+	
+	await get_tree().process_frame
+	lbl.pivot_offset = lbl.size * 0.5
+	
+	_text_jitter(lbl)
+	
+	var t = create_tween()
+	t.tween_property(lbl, "modulate:a", 0.0, randf_range(0.8, 1.8))
+	t.tween_callback(lbl.queue_free)
+
+func _text_jitter(lbl: Label) -> void:
+	for i in range(6):
+		await get_tree().create_timer(randf_range(0.01, 0.04)).timeout
+		
+		if not is_instance_valid(lbl):
+			return
+		
+		lbl.position += Vector2(
+			randf_range(-6, 6),
+			randf_range(-4, 4)
+		)
+		
+		lbl.rotation_degrees += randf_range(-5, 5)
+
+func final_neutral_snap():
+	alastor_sprite.scale = Vector2(2.5, 2.5)
+	alastor_sprite.rotation_degrees = 0
+	alastor_sprite.global_position = pc_screen.get_global_rect().size * 0.5
+	
+	screen_mat.set_shader_parameter("glitch_intensity", 2.0)
+	
+	show_dialogue("YOU ARE PART OF IT NOW.")
+	
+	await get_tree().create_timer(1.2).timeout
+	
+	game_running = false
+	get_tree().quit() # or transition to ending scene
 
 func flash_feedback(color: Color):
 	feedback_flash.color = color
@@ -470,18 +892,54 @@ func flash_feedback(color: Color):
 	tween.tween_property(feedback_flash, "modulate:a", 0.0, 0.25)
 
 func trigger_glitch():
-	var tween = create_tween()
-	glitch_overlay.modulate.a = 0.25
-	tween.tween_property(glitch_overlay, "modulate:a", 0.0, 0.1)
+	var now = Time.get_ticks_msec() / 1000.0
 	
+	if now < next_glitch_time:
+		return
+	
+	var cooldown = lerp(2.2, 0.8, suspicion)
+	next_glitch_time = now + cooldown
+	
+	var mat := screen_mat
+	var base_glitch = 0.004 + suspicion * 0.045
+	var spike = 0.35 + suspicion * 0.55
+	
+	mat.set_shader_parameter("glitch_intensity", spike)
+	mat.set_shader_parameter("glitch_time", now)
+
+	var tween = create_tween()
+	tween.tween_method(
+		func(v):
+			mat.set_shader_parameter("glitch_intensity", v),
+		spike, base_glitch, 0.18
+	)
+
 	var original_pos = pc_screen.position
 	
-	for i in range(5):
-		var offset = Vector2(randf_range(-5, 5), randf_range(-5, 5))
-		pc_screen.position = original_pos + offset
-		await get_tree().create_timer(0.02).timeout
+	for i in range(3):
+		pc_screen.position = original_pos + Vector2(
+			randf_range(-2.5, 2.5),
+			randf_range(-2.5, 2.5)
+		)
+		await get_tree().create_timer(0.018).timeout
 	
 	pc_screen.position = original_pos
+
+func trigger_black_flicker():
+	if not game_running:
+		return
+	
+	var chance = 0.01 + suspicion * 0.08
+	
+	if randf() > chance:
+		return
+	
+	screen_mat.set_shader_parameter("glitch_intensity", 0.9)
+	glitch_overlay.modulate.a = 1.0
+	
+	await get_tree().create_timer(randf_range(0.03, 0.07)).timeout
+	
+	glitch_overlay.modulate.a = 0.0
 
 func punch_slot():
 	var tween = create_tween()
@@ -492,11 +950,31 @@ func show_dialogue(text: String):
 	dialogue_label.text = text
 	dialogue_label.modulate.a = 1
 	
+	if meltdown_active:
+		return
+	
 	var tween = create_tween()
 	tween.tween_interval(1.2)
 	tween.tween_property(dialogue_label, "modulate:a", 0.0, 1.5)
 
 func update_horror_shader():
+	if meltdown_active:
+		horror_mat.set_shader_parameter("vignette_strength", randf_range(2.0, 4.5))
+		horror_mat.set_shader_parameter("vignette_pulse", randf_range(0.3, 1.2))
+		horror_mat.set_shader_parameter("pulse_speed", randf_range(2.0, 8.0))
+		
+		horror_mat.set_shader_parameter("darkness", randf_range(0.4, 0.85))
+		horror_mat.set_shader_parameter("contrast", randf_range(1.2, 1.8))
+		
+		horror_mat.set_shader_parameter("grain_strength", randf_range(0.05, 0.25))
+		horror_mat.set_shader_parameter("chromatic_strength", randf_range(0.003, 0.015))
+		
+		horror_mat.set_shader_parameter("flicker_chance", randf_range(0.05, 0.25))
+		
+		horror_mat.set_shader_parameter("tint_strength", randf_range(0.4, 0.9))
+		
+		return
+	
 	horror_mat.set_shader_parameter("vignette_strength", 0.9 + suspicion * 0.9)
 	horror_mat.set_shader_parameter("darkness", 0.08 + suspicion * 0.22)
 	horror_mat.set_shader_parameter("pulse_strength", 0.04 + suspicion * 0.08)
