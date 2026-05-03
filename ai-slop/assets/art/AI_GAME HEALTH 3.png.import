@@ -2,7 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
+<<<<<<< HEAD
+uid="uid://rd4j2lpt0hbd"
+=======
 uid="uid://taccf1x7voh8"
+>>>>>>> main
 path="res://.godot/imported/AI_GAME HEALTH 3.png-0bfb1b7e51b224617e6d0f751775646a.ctex"
 metadata={
 "vram_texture": false

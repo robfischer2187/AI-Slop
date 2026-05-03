@@ -2,7 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
+<<<<<<< HEAD
+uid="uid://dhyj7hkp564ab"
+=======
 uid="uid://bwcvq76h8xhe6"
+>>>>>>> main
 path="res://.godot/imported/AI GAME ICON happiness2.png-a0e1657a8b4bccd366cd99f9c362a163.ctex"
 metadata={
 "vram_texture": false

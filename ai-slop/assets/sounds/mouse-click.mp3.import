@@ -2,7 +2,11 @@
 
 importer="mp3"
 type="AudioStreamMP3"
+<<<<<<< HEAD
+uid="uid://dbr82v11ij121"
+=======
 uid="uid://n2ivhe0rtii4"
+>>>>>>> main
 path="res://.godot/imported/mouse-click.mp3-c3f4f0be2694344ecaa0b1fdf8c2664b.mp3str"
 
 [deps]

@@ -2,7 +2,11 @@
 
 importer="mp3"
 type="AudioStreamMP3"
+<<<<<<< HEAD
+uid="uid://biyymqxm1qw0i"
+=======
 uid="uid://ba5htp80ou6rg"
+>>>>>>> main
 path="res://.godot/imported/mistake-sound.mp3-28b037edcb841e668aaf842dc5a0584e.mp3str"
 
 [deps]

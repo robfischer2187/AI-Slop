@@ -2,7 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
+<<<<<<< HEAD
+uid="uid://xu11w2d7kewm"
+=======
 uid="uid://dx6grwqxejgl6"
+>>>>>>> main
 path="res://.godot/imported/AI GAME COWORKER NORM (1).png-bb5d36814d00a8a3de702a61fb4e5877.ctex"
 metadata={
 "vram_texture": false

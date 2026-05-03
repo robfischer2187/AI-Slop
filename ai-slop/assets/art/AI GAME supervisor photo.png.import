@@ -2,20 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-<<<<<<< HEAD
-uid="uid://b5axubj54ou8y"
-=======
-uid="uid://b81mmjolnin4m"
->>>>>>> main
-path="res://.godot/imported/AI GAME ICON politician2.png-ffc5c6f6a65e24c2747b1094546d2623.ctex"
+uid="uid://yxcgf3gss6pg"
+path="res://.godot/imported/AI GAME supervisor photo.png-bbf7144aeaf6e20f97a98fddbc934061.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/art/AI GAME ICON politician2.png"
-dest_files=["res://.godot/imported/AI GAME ICON politician2.png-ffc5c6f6a65e24c2747b1094546d2623.ctex"]
+source_file="res://assets/art/AI GAME supervisor photo.png"
+dest_files=["res://.godot/imported/AI GAME supervisor photo.png-bbf7144aeaf6e20f97a98fddbc934061.ctex"]
 
 [params]
 

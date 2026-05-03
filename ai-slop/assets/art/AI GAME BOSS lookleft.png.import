@@ -2,7 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
+<<<<<<< HEAD
+uid="uid://jj8yc8u8178s"
+=======
 uid="uid://8j6lk838f6qn"
+>>>>>>> main
 path="res://.godot/imported/AI GAME BOSS lookleft.png-185519d9f983afc72d2d8121c68bbd77.ctex"
 metadata={
 "vram_texture": false

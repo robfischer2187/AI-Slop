@@ -2,7 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
+<<<<<<< HEAD
+uid="uid://dlc8bkch4hqci"
+=======
 uid="uid://73osadeyxx6u"
+>>>>>>> main
 path="res://.godot/imported/AI GAME COWORKER CAUGHT (1).png-c2f9b4f2e5c29cbca51d1c4a5544f34e.ctex"
 metadata={
 "vram_texture": false

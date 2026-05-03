@@ -2,7 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
+<<<<<<< HEAD
+uid="uid://cb2hujywwl4i7"
+=======
 uid="uid://csubseqq1n8k8"
+>>>>>>> main
 path="res://.godot/imported/AI GAME ICON puppy2.png-b41fdc31c5e6a40c817f938281237477.ctex"
 metadata={
 "vram_texture": false

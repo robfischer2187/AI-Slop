@@ -2,7 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
+<<<<<<< HEAD
+uid="uid://bpavrwbmjjiso"
+=======
 uid="uid://dc2jqeinbfbyo"
+>>>>>>> main
 path="res://.godot/imported/AI GAME ICON moldy food2.png-f318ddaef79a46bda2edb253dfc239f0.ctex"
 metadata={
 "vram_texture": false
