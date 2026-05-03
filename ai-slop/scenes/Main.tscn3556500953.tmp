@@ -14,7 +14,6 @@
 [ext_resource type="FontFile" uid="uid://b2mhm7pqauqyy" path="res://assets/fonts/Sniglet-Regular.ttf" id="7_nxtc6"]
 [ext_resource type="Shader" uid="uid://dclb2ajscetcp" path="res://scripts/shader/screen.gdshader" id="9_wp0k4"]
 [ext_resource type="Texture2D" uid="uid://dx6grwqxejgl6" path="res://assets/art/AI GAME COWORKER NORM (1).png" id="10_lhr70"]
-[ext_resource type="AudioStream" uid="uid://dl0014hpk8gwo" path="res://assets/sounds/time-tickingmp3.mp3" id="15_3p2gp"]
 
 [sub_resource type="Animation" id="Animation_rarhs"]
 length = 0.001
@@ -163,6 +162,8 @@ shader_parameter/flicker_chance = 0.015
 shader_parameter/warm_tint = Vector3(1, 0.92, 0.75)
 shader_parameter/cold_tint = Vector3(0.7, 0.75, 0.8)
 shader_parameter/tint_strength = 0.35
+
+[sub_resource type="AudioStream" id="AudioStream_mwfav"]
 
 [node name="Main" type="Node2D" unique_id=1895185300]
 script = ExtResource("1_elqb8")
@@ -462,6 +463,6 @@ texture = ExtResource("2_rarhs")
 [node name="AudioManager" type="Node" parent="." unique_id=315376386]
 
 [node name="Music" type="AudioStreamPlayer2D" parent="AudioManager" unique_id=1120402727]
-stream = ExtResource("15_3p2gp")
+stream = SubResource("AudioStream_mwfav")
 
 [node name="SFX" type="AudioStreamPlayer2D" parent="AudioManager" unique_id=1673777482]

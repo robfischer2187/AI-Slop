@@ -17,6 +17,10 @@ extends Node2D
 @export var draggable_scene: PackedScene
 @onready var mistakes_label: Label = $UIRoot/UIContainer/PCScreenArea/MistakesLabel
 @onready var progress_label: Label = $UIRoot/UIContainer/PCScreenArea/ProgressLabel
+@onready var audio: AudioStreamPlayer2D = $AudioManager/Music
+var mistake_player: AudioStreamPlayer2D
+var positive_player: AudioStreamPlayer2D
+var caught_player: AudioStreamPlayer2D
 
 var strikes: int = 0
 var task_index: int = 0
@@ -82,6 +86,18 @@ func _ready() -> void:
 	var startup_flow: Node = $UIRoot/UIContainer/PCScreenArea/StartupFlow
 	startup_flow.startup_finished.connect(_on_startup_finished)
 	set_process(false) 
+
+	mistake_player = AudioStreamPlayer2D.new()
+	mistake_player.stream = preload("res://assets/sounds/mistake-sound.mp3")
+	$AudioManager.add_child(mistake_player)
+
+	positive_player = AudioStreamPlayer2D.new()
+	positive_player.stream = preload("res://assets/sounds/positive-beep.mp3")
+	$AudioManager.add_child(positive_player)
+
+	caught_player = AudioStreamPlayer2D.new()
+	caught_player.stream = preload("res://assets/sounds/boss-watching.mp3")
+	$AudioManager.add_child(caught_player)
 
 func _on_startup_finished(_support_forced: bool) -> void:
 	set_process(true)
@@ -156,6 +172,7 @@ func start_game() -> void:
 	ai_score = 0
 	suspicion = 0.0
 	game_running = true
+	audio.play();
 	load_task()
 
 func get_current_phase() -> int:
@@ -196,6 +213,7 @@ func submit_input(input_name: String) -> void:
 	
 	if input_name == current_task["correct"]:
 		ai_score += 1
+		positive_player.play()
 		suspicion = max(suspicion - 0.1, 0)
 		flash_feedback(Color(0, 1, 0))
 		punch_slot()
@@ -206,6 +224,7 @@ func submit_input(input_name: String) -> void:
 	else:
 		sabotage_score += 1
 		suspicion += 0.3
+		mistake_player.play()
 		flash_feedback(Color(1, 0, 0))
 		trigger_glitch()
 		
@@ -287,6 +306,8 @@ func alastor_watch_phase():
 		pass
 	elif sabotage_score >= ai_score * 3 and sabotage_score > 0:
 		await alastor_micro_glitch()
+		caught_player.play()
+
 		show_alastor_rage()
 		await get_tree().create_timer(3.0).timeout
 		get_caught_by_alastor()
@@ -348,6 +369,7 @@ func get_caught_by_alastor() -> void:
 	
 	strikes += 1
 	got_caught_this_watch = true
+	
 	
 	coworkers_texture.texture = load("res://assets/art/AI GAME COWORKER CAUGHT (1).png")
 	reset_coworkers_texture_after_delay()
