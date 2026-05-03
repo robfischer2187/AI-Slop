@@ -15,7 +15,10 @@ enum Phase { LOGIN, LOADING, WELCOME, PROMPT }
 @onready var welcome_label: Label = get_node("WelcomePanel/WelcomeLabel")
 
 @onready var support_prompt: Control = get_node("SupportPrompt")
-@onready var prompt_text: Label = get_node("SupportPrompt/Panel/VBoxContainer/PromptText")
+@onready var sep: VSeparator = get_node("SupportPrompt/Panel/VBoxContainer/VSeparator2")
+@onready var sep3: VSeparator = get_node("SupportPrompt/Panel/VBoxContainer/VSeparator3")
+@onready var comp: Label = get_node("SupportPrompt/Panel/VBoxContainer/Label")
+@onready var prompt_text: RichTextLabel = get_node("SupportPrompt/Panel/VBoxContainer/PromptText")
 @onready var yes_button: Button = get_node("SupportPrompt/Panel/VBoxContainer/HBoxContainer/YesButton")
 @onready var no_button: Button = get_node("SupportPrompt/Panel/VBoxContainer/HBoxContainer/NoButton")
 
@@ -31,6 +34,7 @@ enum Phase { LOGIN, LOADING, WELCOME, PROMPT }
 @onready var glitch_overlay: ColorRect = get_node("../../PCScreenArea/GlitchOverlay")
 @onready var pc_screen: Control = get_node("../../PCScreenArea")
 @onready var ui_container: Control = get_node("../..")
+@onready var foto: Control = get_node("SupportPrompt/Panel/Foto")
 
 var virtual_mouse_pos: Vector2
 var free_mouse := false
@@ -49,6 +53,7 @@ var employee_id: String = ""
 var support_forced: bool = false
 var forced_yes_mode := false
 var start_message_visible := false
+var intro_message_active := false
 
 func _ready() -> void:
 	if debug_fast_mode:
@@ -84,6 +89,14 @@ func _ready() -> void:
 	username_input.text_changed.connect(_on_username_changed)
 
 	call_deferred("_create_prestart_overlay")
+
+	if foto != null:
+		foto.visible = false
+		foto.modulate.a = 0.0
+
+	if sep3 != null:
+		sep3.visible = false
+		sep3.modulate.a = 0.0
 
 func _on_username_changed(new_text: String) -> void:
 	var upper = new_text.to_upper()
@@ -266,12 +279,69 @@ func _play_loading() -> void:
 
 func _show_welcome_then_prompt() -> void:
 	_set_phase(Phase.WELCOME)
-	welcome_label.text = "WELCOME,%s\n BE PRODUCTIVE." % employee_id
+	welcome_label.text = "WELCOME BACK, %s\n BE PRODUCTIVE." % employee_id
 
 	await get_tree().create_timer(welcome_hold_seconds).timeout
 
 	_set_phase(Phase.PROMPT)
-	show_prompt_default()
+	show_intro_message()
+
+func show_intro_message():
+	intro_message_active = true
+	support_prompt.visible = true
+	comp.visible = false
+	sep.visible = false
+
+	if foto != null:
+		foto.visible = true
+		foto.modulate.a = 0.0
+		var t1 = create_tween()
+		t1.tween_property(foto, "modulate:a", 1.0, 0.3)
+
+	if sep3 != null:
+		sep3.visible = true
+		sep3.modulate.a = 0.0
+		var t2 = create_tween()
+		t2.tween_property(sep3, "modulate:a", 1.0, 0.3)
+
+	yes_button.visible = false
+	no_button.visible = false
+
+	var text = "Today, you are tasked with AI Content Supply Flow.\n" + \
+"Your task is to [color=red]feed[/color] the Artificial Intelligence\n" + \
+"with content that corresponds to the prompt\n" + \
+"given to you at the top of your screen.\n" + \
+"You are required to provide exactly [color=red]24 correct inputs[/color].\n" + \
+"Each incorrect input brings the system closer to failure.\n" + \
+"At [color=red]24 errors[/color], the damage becomes [color=red]irreversible[/color].\n" + \
+"This is your supervisor,\n[color=red]Mr. Alastor Slopp.[/color]\n" + \
+"He will be monitoring your progress.\n" + \
+"Ask him for help if you encounter problems.\n" + \
+"Thank you for your hard work.\n\n" + \
+"You can't spell SM[color=red]AI[/color]LE without AI."
+
+	prompt_text.bbcode_enabled = true
+	prompt_text.add_theme_font_size_override("normal_font_size", 18)
+	prompt_text.clear()
+
+	typewriter_intro(text)
+
+func typewriter_intro(text: String) -> void:
+	var visible_text := ""
+
+	for i in range(text.length()):
+		visible_text += text[i]
+		prompt_text.clear()
+		prompt_text.append_text(visible_text)
+		await get_tree().process_frame
+
+	yes_button.visible = true
+	yes_button.modulate.a = 0.0
+	yes_button.text = "CONTINUE"
+	yes_button.modulate.a = 1.0
+
+	var t = create_tween()
+	t.tween_property(yes_button, "modulate:a", 1.0, 0.2)
 
 func show_prompt_default():
 	forced_yes_mode = false
@@ -287,6 +357,30 @@ func show_prompt_default():
 	no_button.visible = true
 
 func _on_support_yes() -> void:
+	if intro_message_active:
+		intro_message_active = false
+
+		shrink_prompt_text()
+
+		if foto != null:
+			var t1 = create_tween()
+			t1.tween_property(foto, "modulate:a", 0.0, 0.2)
+			await t1.finished
+			foto.visible = false
+
+		if sep3 != null:
+			var t2 = create_tween()
+			t2.tween_property(sep3, "modulate:a", 0.0, 0.2)
+			await t2.finished
+			sep3.visible = false
+
+		sep.visible = true
+		yes_button.text = "YES"
+
+		prompt_text.add_theme_font_size_override("normal_font_size", 37)
+		show_prompt_default()
+		return
+
 	if not start_message_visible:
 		start_message_visible = true
 		await show_start_message()
@@ -324,49 +418,61 @@ func show_start_message():
 	yes_button.text = "OK"
 
 func set_prompt_text_glitch(text: String):
-	prompt_text.text = ""
-	
+	prompt_text.clear()
+
+	var visible_text := ""
+
 	for i in range(text.length()):
 		var c = text[i]
-		
+
 		if randf() < 0.25:
-			prompt_text.text += ["#", "%", "?", "@", "!", "0"].pick_random()
+			visible_text += ["#", "%", "?", "@", "!", "0"].pick_random()
+			prompt_text.clear()
+			prompt_text.append_text(visible_text)
 			await get_tree().create_timer(randf_range(0.005, 0.02)).timeout
-			
-			if randf() < 0.7:
-				prompt_text.text = prompt_text.text.substr(0, prompt_text.text.length() - 1)
-		
-		prompt_text.text += c
-		
+
+			if randf() < 0.7 and visible_text.length() > 0:
+				visible_text = visible_text.substr(0, visible_text.length() - 1)
+
+		visible_text += c
+		prompt_text.clear()
+		prompt_text.append_text(visible_text)
+
 		if randf() < 0.15:
 			var scramble_len = randi_range(1, 3)
+			var temp := visible_text
 			for j in range(scramble_len):
-				prompt_text.text += ["#", "%", "?", "@", "X"].pick_random()
-			
+				temp += ["#", "%", "?", "@", "X"].pick_random()
+
+			prompt_text.clear()
+			prompt_text.append_text(temp)
 			await get_tree().create_timer(randf_range(0.01, 0.03)).timeout
-			
-			prompt_text.text = prompt_text.text.substr(0, prompt_text.text.length() - scramble_len)
-		
-		if randf() < 0.08 and prompt_text.text.length() > 2:
+
+			prompt_text.clear()
+			prompt_text.append_text(visible_text)
+
+		if randf() < 0.08 and visible_text.length() > 2:
 			var back = randi_range(1, 2)
-			prompt_text.text = prompt_text.text.substr(0, prompt_text.text.length() - back)
-		
+			visible_text = visible_text.substr(0, visible_text.length() - back)
+
 		await get_tree().create_timer(randf_range(0.01, 0.035)).timeout
-	
+
 	if randf() < 0.4:
 		await get_tree().create_timer(0.05).timeout
-		
-		var corrupted = ""
+
+		var corrupted := ""
 		for c in text:
 			if randf() < 0.2:
 				corrupted += ["#", "%", "?", "@", "X"].pick_random()
 			else:
 				corrupted += c
-		
-		prompt_text.text = corrupted
-		
+
+		prompt_text.clear()
+		prompt_text.append_text(corrupted)
+
 		await get_tree().create_timer(0.06).timeout
-		prompt_text.text = text
+		prompt_text.clear()
+		prompt_text.append_text(text)
 
 func _finish_startup() -> void:
 	startup_finished.emit(support_forced)
@@ -414,3 +520,9 @@ func trigger_violent_glitch():
 	mat.set_shader_parameter("glitch_intensity", 0.01)
 	
 	glitch_overlay.color = Color.BLACK
+
+func shrink_prompt_text():
+	var t = create_tween()
+	t.set_trans(Tween.TRANS_SINE)
+	t.set_ease(Tween.EASE_IN_OUT)
+	t.tween_property(prompt_text, "custom_minimum_size:y", 40.0, 0.25)

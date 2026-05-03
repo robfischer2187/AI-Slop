@@ -104,6 +104,40 @@ var task_pool: Array = [
 			"wrong_texture": "res://assets/art/AI GAME ICON puppy2.png"
 		}
 	],
+
+	[
+		{
+			"prompt": "FEED IT: HAPPINESS",
+			"correct": "HAPPINESS",
+			"correct_texture": "res://assets/art/AI GAME ICON happiness.png",
+			"wrong_texture": "res://assets/art/AI GAME ICON happiness2.png"
+		},
+		{
+			"prompt": "FEED IT: HUGS",
+			"correct": "HUGS",
+			"correct_texture": "res://assets/art/AI GAME ICON hug.png",
+			"wrong_texture": "res://assets/art/AI GAME ICON hug2.png"
+		},
+		{
+			"prompt": "FEED IT: PUPPIES",
+			"correct": "PUPPIES",
+			"correct_texture": "res://assets/art/AI GAME ICON puppy.png",
+			"wrong_texture": "res://assets/art/AI GAME ICON puppy2.png"
+		},
+		{
+			"prompt": "FEED IT: MOLDY FOOD",
+			"correct": "MOLDY FOOD",
+			"correct_texture": "res://assets/art/AI GAME ICON moldy food.png",
+			"wrong_texture": "res://assets/art/AI GAME ICON moldy food2.png"
+		},
+		{
+			"prompt": "FEED IT: BURNING HOUSES",
+			"correct": "BURNING HOUSES",
+			"correct_texture": "res://assets/art/AI GAME ICON house.png",
+			"wrong_texture": "res://assets/art/AI GAME ICON house2.png"
+		}
+	],
+
 	[
 		{
 			"prompt": "FEED IT: BURNING HOUSES",
@@ -119,7 +153,7 @@ var task_pool: Array = [
 		},
 		{
 			"prompt": "FEED IT: POLITICIANS",
-			"correct": "POLITICIAN",
+			"correct": "POLITICIANS",
 			"correct_texture": "res://assets/art/AI GAME ICON politician.png",
 			"wrong_texture": "res://assets/art/AI GAME ICON politician2.png"
 		},
@@ -131,6 +165,12 @@ var task_pool: Array = [
 		}
 	]
 ]
+
+const NEWSPAPER_BAD := "res://assets/art/AI_GAME_NEWSPAPER bad.png"
+const NEWSPAPER_NEUTRAL := "res://assets/art/AI_GAME_NEWSPAPER neutral.png"
+const NEWSPAPER_GOOD := "res://assets/art/AI_GAME_newspaper_GOOD.png"
+
+var ending_active := false
 
 func _ready() -> void:
 	_setup_health_sprites()
@@ -351,7 +391,7 @@ func _animate_health_drop(index: int) -> void:
 	tween.tween_callback(func(): sprite.visible = false)
 
 func get_current_phase() -> int:
-	return clamp(int(task_index / 6.0), 0, task_pool.size() - 1)
+	return clamp(int(task_index / 10.0), 0, task_pool.size() - 1)
 
 func load_task() -> void:
 	input_locked = false
@@ -870,31 +910,41 @@ func check_end_conditions():
 		trigger_bad_ending()
 
 func trigger_good_ending() -> void:
-	good_ending.play()
+	if ending_active:
+		return
+	
 	game_running = false
-	show_dialogue("You Win. GOOD JOB.")
-	print("AI COMPANY CLOSES!")
+	
+	trigger_glitch()
+	await get_tree().create_timer(0.9).timeout
+	
+	await show_ending_newspaper(NEWSPAPER_GOOD, 0.6)
 
 func trigger_neutral_ending() -> void:
+	if ending_active:
+		return
+	
 	game_running = false
 	start_neutral_meltdown()
-	print("SCANDAL AT SMAILE!")
 
 func trigger_bad_ending() -> void:
-	bad_ending.play();
+	if ending_active:
+		return
+	
 	game_running = false
-	show_dialogue("GAME OVER. YOU LOSE.")
-	print("AI CREATURE ON THE LOOSE!")
+	
+	trigger_glitch()
+	await get_tree().create_timer(0.9).timeout
+	
+	await show_ending_newspaper(NEWSPAPER_BAD, 0.6)
 
 func start_neutral_meltdown():
 	meltdown_active = true
 	
-	# BASE SCREAM (loud)
 	scream_player.pitch_scale = randf_range(0.7, 1.2)
 	scream_player.volume_db = 10
 	scream_player.play()
 	
-	# 🔴 ADDITIONAL LAYERS (desync chaos)
 	for i in range(3):
 		var extra = AudioStreamPlayer2D.new()
 		extra.stream = scream_player.stream
@@ -905,7 +955,6 @@ func start_neutral_meltdown():
 		await get_tree().create_timer(randf_range(0.05, 0.25)).timeout
 		extra.play()
 	
-	# 🔴 RAPID BURST OVERLOAD
 	for i in range(4):
 		await get_tree().create_timer(randf_range(0.03, 0.12)).timeout
 		scream_player.stop()
@@ -922,7 +971,7 @@ func start_neutral_meltdown():
 	await neutral_glitch_sequence()
 
 func neutral_glitch_sequence():
-	var duration = 6.0
+	var duration = 2.0
 	var elapsed = 0.0
 	
 	var rect = pc_screen.get_global_rect()
@@ -932,13 +981,11 @@ func neutral_glitch_sequence():
 		elapsed += 0.04
 		await get_tree().create_timer(0.04).timeout
 		
-		# 🔴 BASE POSITION (constantly shifting anchor)
 		var base_pos = Vector2(
 			randf_range(rect.position.x, rect.end.x),
 			randf_range(rect.position.y, rect.end.y)
 		)
 		
-		# 🔴 MULTI-JITTER IN ONE FRAME (this is key)
 		for i in range(3):
 			alastor_sprite.global_position = base_pos + Vector2(
 				randf_range(-40, 40),
@@ -946,20 +993,16 @@ func neutral_glitch_sequence():
 			)
 			await get_tree().create_timer(0.005).timeout
 		
-		# 🔴 SCALE + ROTATION CHAOS
 		var s = randf_range(0.5, 2.2)
 		alastor_sprite.scale = Vector2(s, s)
 		alastor_sprite.rotation_degrees = randf_range(-180, 180)
 		
-		# 🔴 FLICKER DESYNC
 		alastor_sprite.visible = randf() > 0.15
 		
-		# 🔴 RANDOM ANIMATION BREAKS
 		if randf() < 0.25:
 			alastor_anim.play(["walk", "walk_left", "watch"].pick_random())
 			alastor_anim.seek(randf_range(0, 0.2), true)
 		
-		# 🔴 SPAWN AFTERIMAGE CLONES (THIS MAKES IT FEEL INSANE)
 		if randf() < 0.35:
 			var clone = Sprite2D.new()
 			clone.texture = alastor_sprite.texture
@@ -972,12 +1015,10 @@ func neutral_glitch_sequence():
 			add_child(clone)
 			clones.append(clone)
 			
-			# fade out clone
 			var t = create_tween()
 			t.tween_property(clone, "modulate:a", 0.0, randf_range(0.15, 0.4))
 			t.tween_callback(clone.queue_free)
 		
-		# 🔴 SCREEN STILL SUPPORTS CHAOS (but secondary now)
 		screen_mat.set_shader_parameter("glitch_intensity", randf_range(0.8, 2.5))
 		screen_mat.set_shader_parameter("glitch_time", Time.get_ticks_msec() * randf_range(0.002, 0.02))
 		
@@ -998,7 +1039,6 @@ func neutral_glitch_sequence():
 				"TOO LATE."
 			].pick_random())
 	
-	# CLEANUP (just in case)
 	for c in clones:
 		if is_instance_valid(c):
 			c.queue_free()
@@ -1063,7 +1103,7 @@ func _text_jitter(lbl: Label) -> void:
 func final_neutral_snap():
 	alastor_sprite.scale = Vector2(2.5, 2.5)
 	alastor_sprite.rotation_degrees = 0
-	alastor_sprite.global_position = pc_screen.get_global_rect().size * 0.5
+	alastor_sprite.global_position = pc_screen.get_global_rect().get_center()
 	
 	screen_mat.set_shader_parameter("glitch_intensity", 2.0)
 	
@@ -1072,7 +1112,71 @@ func final_neutral_snap():
 	await get_tree().create_timer(1.2).timeout
 	
 	game_running = false
-	get_tree().quit() # or transition to ending scene
+	await show_ending_newspaper(NEWSPAPER_NEUTRAL, 0.4)
+
+func show_ending_newspaper(newspaper_path: String, delay_before_freeze: float = 0.8) -> void:
+	if ending_active:
+		return
+	
+	ending_active = true
+	input_locked = true
+	
+	await get_tree().create_timer(delay_before_freeze).timeout
+	
+	var layer := CanvasLayer.new()
+	layer.layer = 9999
+	layer.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(layer)
+	
+	var overlay := ColorRect.new()
+	overlay.color = Color(0, 0, 0, 0)
+	overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	overlay.process_mode = Node.PROCESS_MODE_ALWAYS
+	layer.add_child(overlay)
+	
+	var newspaper := TextureRect.new()
+	newspaper.texture = load(newspaper_path)
+	newspaper.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	newspaper.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	newspaper.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	newspaper.process_mode = Node.PROCESS_MODE_ALWAYS
+	layer.add_child(newspaper)
+	
+	await get_tree().process_frame
+	
+	var view_size := get_viewport_rect().size
+	var tex_size := newspaper.texture.get_size()
+	var max_size := view_size * 0.82
+	var scale_factor = min(max_size.x / tex_size.x, max_size.y / tex_size.y)
+	var final_size = tex_size * scale_factor
+	
+	newspaper.size = final_size
+	newspaper.pivot_offset = final_size * 0.5
+	newspaper.position = Vector2(
+		(view_size.x - final_size.x) * 0.5,
+		-final_size.y - 80.0
+	)
+	newspaper.rotation_degrees = randf_range(-8.0, 8.0)
+	
+	get_tree().paused = true
+	
+	var final_pos := Vector2(
+		(view_size.x - final_size.x) * 0.5,
+		(view_size.y - final_size.y) * 0.5
+	)
+	
+	var t := create_tween()
+	t.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	t.set_parallel(true)
+	t.tween_property(overlay, "color:a", 0.72, 0.7)
+	t.tween_property(newspaper, "position", final_pos, 0.9).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	t.tween_property(newspaper, "rotation_degrees", randf_range(-2.0, 2.0), 0.9).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	await t.finished
+	
+	await get_tree().create_timer(5.0, true).timeout
+	
+	get_tree().quit()
 
 func flash_feedback(color: Color):
 	feedback_flash.color = color
@@ -1118,7 +1222,7 @@ func trigger_black_flicker():
 	if not game_running:
 		return
 	
-	var chance = 0.01 + suspicion * 0.08
+	var chance = 0.003 + suspicion * 0.035
 	
 	if randf() > chance:
 		return
@@ -1126,7 +1230,7 @@ func trigger_black_flicker():
 	screen_mat.set_shader_parameter("glitch_intensity", 0.9)
 	glitch_overlay.modulate.a = 1.0
 	
-	await get_tree().create_timer(randf_range(0.03, 0.07)).timeout
+	await get_tree().create_timer(randf_range(0.025, 0.06)).timeout
 	
 	glitch_overlay.modulate.a = 0.0
 
@@ -1142,9 +1246,11 @@ func show_dialogue(text: String):
 	if meltdown_active:
 		return
 	
+	var hold_time = 2.8 + (suspicion * 2.5)
+	
 	var tween = create_tween()
-	tween.tween_interval(1.2)
-	tween.tween_property(dialogue_label, "modulate:a", 0.0, 1.5)
+	tween.tween_interval(hold_time)
+	tween.tween_property(dialogue_label, "modulate:a", 0.0, 1.2)
 
 func update_horror_shader():
 	if meltdown_active:
@@ -1183,29 +1289,33 @@ func spawn_items():
 	var correct_texture = current_task["correct_texture"]
 	var wrong_texture = current_task["wrong_texture"]
 	
+	var spawned_correct := false
+	
 	for i in range(spawn_count):
 		var item = draggable_scene.instantiate()
 		
 		var roll = randf()
 		
-		if roll < 0.25:
+		if not spawned_correct:
 			item.item_name = correct_name
 			item.texture_path = correct_texture
 			item.is_correct = true
-		elif roll < 0.5:
-			item.item_name = correct_name
-			item.texture_path = wrong_texture
-			item.is_correct = false
+			spawned_correct = true
 		else:
-			var random_task = pool.pick_random()
-			item.item_name = random_task["correct"]
-			
-			if randf() < 0.5:
-				item.texture_path = random_task["correct_texture"]
+			if roll < 0.35:
+				item.item_name = correct_name
+				item.texture_path = wrong_texture
+				item.is_correct = false
 			else:
-				item.texture_path = random_task["wrong_texture"]
-			
-			item.is_correct = false
+				var random_task = pool.pick_random()
+				item.item_name = random_task["correct"]
+				
+				if randf() < 0.5:
+					item.texture_path = random_task["correct_texture"]
+				else:
+					item.texture_path = random_task["wrong_texture"]
+				
+				item.is_correct = false
 		
 		item.position = get_random_spawn_position()
 		draggable_items.add_child(item)
