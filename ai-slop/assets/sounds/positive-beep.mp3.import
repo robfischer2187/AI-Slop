@@ -2,7 +2,11 @@
 
 importer="mp3"
 type="AudioStreamMP3"
+<<<<<<< HEAD
 uid="uid://ibu7by4k8no5"
+=======
+uid="uid://cinlobqtsl6e7"
+>>>>>>> main
 path="res://.godot/imported/positive-beep.mp3-7a6652884d912d442de6b0f6847823f6.mp3str"
 
 [deps]

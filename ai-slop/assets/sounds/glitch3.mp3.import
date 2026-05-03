@@ -2,7 +2,11 @@
 
 importer="mp3"
 type="AudioStreamMP3"
+<<<<<<< HEAD
 uid="uid://dr8fvxmyxdo8n"
+=======
+uid="uid://cdbp0hsrdaqpo"
+>>>>>>> main
 path="res://.godot/imported/glitch3.mp3-8294b86f85297c2602f0fc564d8d460a.mp3str"
 
 [deps]

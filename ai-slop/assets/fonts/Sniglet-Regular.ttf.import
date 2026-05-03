@@ -2,7 +2,11 @@
 
 importer="font_data_dynamic"
 type="FontFile"
+<<<<<<< HEAD
 uid="uid://jc4ish4ysnum"
+=======
+uid="uid://b2mhm7pqauqyy"
+>>>>>>> main
 path="res://.godot/imported/Sniglet-Regular.ttf-c153d16c4c8559b1b9e9030c823a084d.fontdata"
 
 [deps]

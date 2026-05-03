@@ -2,7 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
+<<<<<<< HEAD
 uid="uid://dmq6urox45ig8"
+=======
+uid="uid://bimg4ydud0iv4"
+>>>>>>> main
 path="res://.godot/imported/AI GAME COMPUTER.png-78eee658732135966e14f1008e41a4d8.ctex"
 metadata={
 "vram_texture": false

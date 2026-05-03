@@ -2,7 +2,11 @@
 
 importer="mp3"
 type="AudioStreamMP3"
+<<<<<<< HEAD
 uid="uid://bj3wctwpp0ly6"
+=======
+uid="uid://dtp3bu20nemte"
+>>>>>>> main
 path="res://.godot/imported/office.mp3-46ac09c21f5f8db4c1bfc7a4598f467e.mp3str"
 
 [deps]

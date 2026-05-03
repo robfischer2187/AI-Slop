@@ -774,7 +774,7 @@ func get_caught_by_alastor() -> void:
 	update_ui()
 	
 	if strikes == 1:
-		show_dialogue("What are you doing? I’m warning you…")
+		show_dialogue("Cut it out! If you continue, you'll destroy our company!")
 	elif strikes == 2:
 		show_dialogue("You’re killing It! This… this is your final warning.")
 	elif strikes >= 3:
