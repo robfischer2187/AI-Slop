@@ -16,7 +16,7 @@ extends Node2D
 @onready var screen_mat: ShaderMaterial = $UIRoot/UIContainer/PCScreenArea/ScreenOverlay/EffectRect.material
 @onready var coworkers_texture: TextureRect = $Coworkers
 @onready var cursor_blocker: Control = $UIRoot/UIContainer/PCScreenArea/CursorBlockerArea
-@onready var fake_cursor: Sprite2D = $UIRoot/FakeCursor
+@onready var fake_cursor: Sprite2D = $UIRoot/UIContainer/PCScreenArea/FakeCursor
 @export var draggable_scene: PackedScene
 @onready var mistakes_label: Label = $UIRoot/UIContainer/PCScreenArea/MistakesLabel
 @onready var progress_label: Label = $UIRoot/UIContainer/PCScreenArea/ProgressLabel
@@ -99,6 +99,32 @@ var task_pool: Array = [
 			"correct": "PUPPIES",
 			"correct_texture": "res://assets/art/AI GAME ICON puppy.png",
 			"wrong_texture": "res://assets/art/AI GAME ICON puppy2.png"
+		}
+	],
+	[
+		{
+			"prompt": "FEED IT: BURNING HOUSES",
+			"correct": "BURNING HOUSES",
+			"correct_texture": "res://assets/art/AI GAME ICON house.png",
+			"wrong_texture": "res://assets/art/AI GAME ICON house2.png"
+		},
+		{
+			"prompt": "FEED IT: MOLDY FOOD",
+			"correct": "MOLDY FOOD",
+			"correct_texture": "res://assets/art/AI GAME ICON moldy food.png",
+			"wrong_texture": "res://assets/art/AI GAME ICON moldy food2.png"
+		},
+		{
+			"prompt": "FEED IT: POLITICIANS",
+			"correct": "POLITICIAN",
+			"correct_texture": "res://assets/art/AI GAME ICON politician.png",
+			"wrong_texture": "res://assets/art/AI GAME ICON politician2.png"
+		},
+		{
+			"prompt": "FEED IT: CANNIBALISM",
+			"correct": "CANNIBALISM",
+			"correct_texture": "res://assets/art/AI GAME ICON cannibalism.png",
+			"wrong_texture": "res://assets/art/AI GAME ICON cannibalism.png"
 		}
 	]
 ]
@@ -344,9 +370,7 @@ func submit_input(item) -> void:
 	
 	input_locked = true
 	
-	var correct_name = current_task["correct"]
-	var is_texture_correct = not item.texture_path.get_file().contains("2")
-	var is_actually_correct = item.item_name == correct_name and is_texture_correct
+	var is_actually_correct = item.texture_path == current_task["correct_texture"]
 	
 	if is_actually_correct:
 		ai_score += 1
@@ -533,7 +557,6 @@ func play_walk_animation():
 		alastor_anim_locked = false
 		return
 
-	# 👇 THIS is the important order
 	alastor_root.visible = true
 	alastor_sprite.visible = true
 

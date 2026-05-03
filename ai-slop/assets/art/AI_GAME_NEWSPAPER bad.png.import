@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dh6ds5jhm6mpm"
-path="res://.godot/imported/AI GAME ICON cannibalism.png-dc53d4f9fe053d6a2c395dff40d8f3e6.ctex"
+uid="uid://kjmjfsi5m22q"
+path="res://.godot/imported/AI_GAME_NEWSPAPER bad.png-555399c81dff43debf74d0425cfc014c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/art/AI GAME ICON cannibalism.png"
-dest_files=["res://.godot/imported/AI GAME ICON cannibalism.png-dc53d4f9fe053d6a2c395dff40d8f3e6.ctex"]
+source_file="res://assets/art/AI_GAME_NEWSPAPER bad.png"
+dest_files=["res://.godot/imported/AI_GAME_NEWSPAPER bad.png-555399c81dff43debf74d0425cfc014c.ctex"]
 
 [params]
 
