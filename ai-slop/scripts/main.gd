@@ -252,6 +252,7 @@ func submit_input(input_name: String) -> void:
 	else:
 		sabotage_score += 1
 		suspicion += 0.45 if is_being_watched else 0.3
+		mistake_player.play()
 		flash_feedback(Color(1, 0, 0))
 		trigger_glitch()
 		
