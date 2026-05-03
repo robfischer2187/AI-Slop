@@ -2,14 +2,20 @@ extends Control
 
 @export var item_name: String = "DOGS"
 
+
 var dragging: bool = false
 var offset: Vector2
 var start_position: Vector2
+var drag_item: AudioStreamPlayer2D
+
 
 func _ready():
 	size = Vector2(80, 80)
 	mouse_filter = Control.MOUSE_FILTER_STOP
-	
+	drag_item = AudioStreamPlayer2D.new()
+	drag_item.stream = preload("res://assets/sounds/pick-item.mp3")
+	drag_item.volume_db = 10.0
+	add_child(drag_item)
 	start_position = position
 	add_to_group("draggable")
 	rotation_degrees = randf_range(-8, 8)
@@ -52,6 +58,7 @@ func _gui_input(event):
 	if event is InputEventMouseButton:
 		if event.pressed:
 			dragging = true
+			drag_item.play()
 			offset = get_tree().get_root().get_node("Main").virtual_mouse_pos - global_position
 		else:
 			dragging = false
