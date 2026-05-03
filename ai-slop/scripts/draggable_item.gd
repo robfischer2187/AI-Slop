@@ -1,6 +1,8 @@
 extends Control
 
 @export var item_name: String = "DOGS"
+@export var texture_path: String = ""
+@export var is_correct: bool = false
 
 var dragging: bool = false
 var offset: Vector2
@@ -29,7 +31,7 @@ func setup_text():
 	
 	var font = load("res://assets/fonts/IBMPlexMono-SemiBold.ttf")
 	label.add_theme_font_override("font", font)
-	label.add_theme_font_size_override("font_size", 18)
+	label.add_theme_font_size_override("font_size", 24)
 	
 	label.modulate = Color(0, 0, 0)
 	label.size = size
@@ -41,10 +43,13 @@ func setup_text():
 
 func setup_image():
 	var tex = $TextureRect
-	tex.texture = preload("res://icon.svg")
+	
+	if texture_path != "":
+		tex.texture = load(texture_path)
+	
 	tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	tex.custom_minimum_size = Vector2(64, 64)
+	tex.custom_minimum_size = Vector2(72, 72)
 	tex.size = size
 	tex.mouse_filter = Control.MOUSE_FILTER_IGNORE
 

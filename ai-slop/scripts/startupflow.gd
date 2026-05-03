@@ -29,6 +29,12 @@ enum Phase { LOGIN, LOADING, WELCOME, PROMPT }
 	else get_parent() as Control
 )
 
+@onready var cursor_blocker: Control = get_node_or_null("../CursorBlockerArea")
+@onready var fake_cursor: Sprite2D = get_node_or_null("../../../FakeCursor")
+
+var virtual_mouse_pos: Vector2
+var free_mouse := false
+
 signal startup_finished(support_forced: bool)
 
 var click_player: AudioStreamPlayer
@@ -65,7 +71,14 @@ func _ready() -> void:
 	click_player = AudioStreamPlayer.new()
 	click_player.stream = preload("res://assets/sounds/mouse-click.mp3")
 	add_child(click_player)
+	
+	init_virtual_mouse()
+	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
+	set_process(true)
 
+func _process(_delta):
+	update_virtual_mouse()
+	fake_cursor.global_position = virtual_mouse_pos
 
 func _validate_nodes_or_abort() -> void:
 	var missing: Array[String] = []
@@ -222,7 +235,23 @@ func _popup_prompt_centered_in_pc_screen_clamped() -> void:
 
 	support_prompt.popup(Rect2i(pos, dlg_size))
 
-
 func _finish_startup() -> void:
 	print("Startup complete. support_forced=", support_forced)
 	startup_finished.emit(support_forced)
+
+
+func init_virtual_mouse():
+	var rect = cursor_blocker.get_global_rect()
+	virtual_mouse_pos = rect.position + rect.size * 0.5
+	virtual_mouse_pos.y += rect.size.y * 0.1
+
+func update_virtual_mouse():
+	if free_mouse:
+		virtual_mouse_pos = get_global_mouse_position()
+		return
+	
+	var rect = cursor_blocker.get_global_rect()
+	var real = get_global_mouse_position()
+	
+	virtual_mouse_pos.x = clamp(real.x, rect.position.x, rect.end.x)
+	virtual_mouse_pos.y = clamp(real.y, rect.position.y, rect.end.y)
