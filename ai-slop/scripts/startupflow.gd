@@ -31,7 +31,7 @@ enum Phase { LOGIN, LOADING, WELCOME, PROMPT }
 signal startup_finished(support_forced: bool)
 
 var phase: Phase = Phase.LOGIN
-var employee_id: String = "E-1031"
+var employee_id: String = "007"
 var support_forced: bool = false
 var forced_yes_mode := false
 var start_message_visible := false
@@ -118,7 +118,7 @@ func _play_loading() -> void:
 
 func _show_welcome_then_prompt() -> void:
 	_set_phase(Phase.WELCOME)
-	welcome_label.text = "WELCOME, EMPLOYEE %s.\nTODAY WILL BE PRODUCTIVE." % employee_id
+	welcome_label.text = "WELCOME,%s\n BE PRODUCTIVE." % employee_id
 
 	await get_tree().create_timer(welcome_hold_seconds).timeout
 
@@ -128,15 +128,12 @@ func _show_welcome_then_prompt() -> void:
 
 
 func _on_support_yes() -> void:
-	# First YES shows the startup message popup. The OK click on that popup
-	# comes back here with `start_message_visible` already set, and then we finish.
 	if not start_message_visible:
 		start_message_visible = true
 		_show_start_message_popup()
 		return
 
 	start_message_visible = false
-	# In forced mode, YES means "you tried NO, too bad" but still continue.
 	if alastor != null:
 		alastor.visible = true
 	
@@ -174,15 +171,15 @@ func _reset_prompt_to_default() -> void:
 
 
 func _set_prompt_forced_yes() -> void:
-	support_prompt.title = "COMPLIANCE CHECK"
-	support_prompt.dialog_text = "SORRY. YOU HAVE NO OTHER OPTION."
+	support_prompt.title = "Oh No That Went Wrong"
+	support_prompt.dialog_text = "Just Press Yes"
 	support_prompt.get_ok_button().text = "YES"
 	support_prompt.get_cancel_button().hide()
 
 
 func _show_start_message_popup() -> void:
-	support_prompt.title = "STARTING"
-	support_prompt.dialog_text = "Great, lets start the game"
+	support_prompt.title = "You Ready?"
+	support_prompt.dialog_text = "Lets Play Some Game Then Ay"
 	support_prompt.get_ok_button().text = "OK"
 	support_prompt.get_cancel_button().hide()
 	_popup_prompt_centered_in_pc_screen_clamped()
