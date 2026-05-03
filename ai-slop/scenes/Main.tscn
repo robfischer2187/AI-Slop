@@ -259,46 +259,48 @@ shader_parameter/warm_tint = Vector3(1, 0.92, 0.75)
 shader_parameter/cold_tint = Vector3(0.7, 0.75, 0.8)
 shader_parameter/tint_strength = 0.35
 
-[node name="Main" type="Node2D" unique_id=1870074229]
+[node name="Main" type="Node2D"]
 script = ExtResource("1_elqb8")
 draggable_scene = ExtResource("2_qmy6f")
 
-[node name="OfficeBackground" type="TextureRect" parent="." unique_id=1009388896]
+[node name="OfficeBackground" type="TextureRect" parent="."]
 offset_right = 1920.0
 offset_bottom = 1080.0
 texture = ExtResource("2_vcsgt")
 
-[node name="Coworkers" type="TextureRect" parent="." unique_id=1457544796]
+[node name="Coworkers" type="TextureRect" parent="."]
 offset_top = -200.0
 offset_right = 1920.0
 offset_bottom = 1080.0
 texture = ExtResource("10_lhr70")
 
-[node name="AlastorRoot" type="Node2D" parent="." unique_id=541140639]
+[node name="AlastorRoot" type="Node2D" parent="."]
 
-[node name="AlastorSlopp" type="CharacterBody2D" parent="AlastorRoot" unique_id=622201712]
+[node name="AlastorSlopp" type="CharacterBody2D" parent="AlastorRoot"]
 visible = false
 position = Vector2(-90, 132)
 
-[node name="Sprite2D" type="Sprite2D" parent="AlastorRoot/AlastorSlopp" unique_id=1469089226]
+[node name="Sprite2D" type="Sprite2D" parent="AlastorRoot/AlastorSlopp"]
 texture = ExtResource("3_jlsqs")
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="AlastorRoot/AlastorSlopp" unique_id=73463024]
-libraries/ = SubResource("AnimationLibrary_c01mt")
+[node name="AnimationPlayer" type="AnimationPlayer" parent="AlastorRoot/AlastorSlopp"]
+libraries = {
+&"": SubResource("AnimationLibrary_c01mt")
+}
 speed_scale = 0.3
 
-[node name="MonitorFrame" type="Sprite2D" parent="." unique_id=402714211]
+[node name="MonitorFrame" type="Sprite2D" parent="."]
 
-[node name="UIRoot" type="CanvasLayer" parent="." unique_id=1367847865]
+[node name="UIRoot" type="CanvasLayer" parent="."]
 
-[node name="TextureRect" type="TextureRect" parent="UIRoot" unique_id=1688758753]
+[node name="TextureRect" type="TextureRect" parent="UIRoot"]
 offset_left = -1.0
 offset_top = 1.0
 offset_right = 1919.0
 offset_bottom = 1281.0
 texture = ExtResource("4_q8u5g")
 
-[node name="UIContainer" type="Control" parent="UIRoot" unique_id=28801074]
+[node name="UIContainer" type="Control" parent="UIRoot"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -306,7 +308,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="PCScreenArea" type="Control" parent="UIRoot/UIContainer" unique_id=977153957]
+[node name="PCScreenArea" type="Control" parent="UIRoot/UIContainer"]
 clip_contents = true
 layout_mode = 1
 anchors_preset = 15
@@ -319,12 +321,12 @@ offset_bottom = -1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="DesktopUI" type="Control" parent="UIRoot/UIContainer/PCScreenArea" unique_id=1249199665]
+[node name="DesktopUI" type="Control" parent="UIRoot/UIContainer/PCScreenArea"]
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
 
-[node name="TaskText" type="Label" parent="UIRoot/UIContainer/PCScreenArea" unique_id=1497813896]
+[node name="TaskText" type="Label" parent="UIRoot/UIContainer/PCScreenArea"]
 layout_mode = 0
 offset_left = 33.0
 offset_top = 27.0
@@ -334,7 +336,7 @@ theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("6_bjd11")
 theme_override_font_sizes/font_size = 37
 
-[node name="MistakesLabel" type="Label" parent="UIRoot/UIContainer/PCScreenArea" unique_id=1406727671]
+[node name="MistakesLabel" type="Label" parent="UIRoot/UIContainer/PCScreenArea"]
 layout_mode = 0
 offset_left = 1096.0
 offset_top = 36.0
@@ -345,7 +347,7 @@ theme_override_fonts/font = ExtResource("6_bjd11")
 theme_override_font_sizes/font_size = 37
 horizontal_alignment = 2
 
-[node name="ProgressLabel" type="Label" parent="UIRoot/UIContainer/PCScreenArea" unique_id=416641639]
+[node name="ProgressLabel" type="Label" parent="UIRoot/UIContainer/PCScreenArea"]
 layout_mode = 0
 offset_left = 1096.0
 offset_top = 96.0
@@ -356,7 +358,7 @@ theme_override_fonts/font = ExtResource("6_bjd11")
 theme_override_font_sizes/font_size = 37
 horizontal_alignment = 2
 
-[node name="InputSlots" type="Control" parent="UIRoot/UIContainer/PCScreenArea" unique_id=239760362]
+[node name="InputSlots" type="Control" parent="UIRoot/UIContainer/PCScreenArea"]
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
@@ -371,35 +373,35 @@ texture = ExtResource("8_cvmbd")
 expand_mode = 1
 script = ExtResource("2_0bbpv")
 
-[node name="DraggableItems" type="Control" parent="UIRoot/UIContainer/PCScreenArea" unique_id=1944709506]
+[node name="DraggableItems" type="Control" parent="UIRoot/UIContainer/PCScreenArea"]
 anchors_preset = 0
 offset_left = 206.0
 offset_top = 84.0
 offset_right = 1187.0
 offset_bottom = 504.0
 
-[node name="CursorBlockerArea" type="ColorRect" parent="UIRoot/UIContainer/PCScreenArea" unique_id=1708847287]
+[node name="CursorBlockerArea" type="ColorRect" parent="UIRoot/UIContainer/PCScreenArea"]
 layout_mode = 0
 offset_right = 1397.0
 offset_bottom = 503.0
 mouse_filter = 2
 color = Color(1, 1, 1, 0)
 
-[node name="FeedbackFlash" type="ColorRect" parent="UIRoot/UIContainer/PCScreenArea" unique_id=613763524]
+[node name="FeedbackFlash" type="ColorRect" parent="UIRoot/UIContainer/PCScreenArea"]
 layout_mode = 0
 offset_right = 1398.0
 offset_bottom = 506.0
 mouse_filter = 2
 color = Color(1, 1, 1, 0)
 
-[node name="GlitchOverlay" type="ColorRect" parent="UIRoot/UIContainer/PCScreenArea" unique_id=1690729892]
+[node name="GlitchOverlay" type="ColorRect" parent="UIRoot/UIContainer/PCScreenArea"]
 layout_mode = 0
 offset_right = 1394.0
 offset_bottom = 502.0
 mouse_filter = 2
 color = Color(1, 1, 1, 0)
 
-[node name="StartupFlow" type="Control" parent="UIRoot/UIContainer/PCScreenArea" unique_id=1840271090]
+[node name="StartupFlow" type="Control" parent="UIRoot/UIContainer/PCScreenArea"]
 clip_contents = true
 layout_mode = 1
 anchors_preset = 8
@@ -416,7 +418,7 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("6_wp0k4")
 
-[node name="LoginPanel" type="Control" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow" unique_id=842979177]
+[node name="LoginPanel" type="Control" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -425,7 +427,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="UsernameInput" type="LineEdit" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow/LoginPanel" unique_id=1674013920]
+[node name="UsernameInput" type="LineEdit" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow/LoginPanel"]
 layout_mode = 0
 offset_left = 426.0
 offset_top = 221.0
@@ -438,7 +440,7 @@ placeholder_text = "ENTER EMPLOYEE ID"
 alignment = 1
 max_length = 12
 
-[node name="LoginButton" type="Button" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow/LoginPanel" unique_id=1141977022]
+[node name="LoginButton" type="Button" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow/LoginPanel"]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -457,7 +459,7 @@ theme_override_font_sizes/font_size = 37
 text = "Login"
 icon_alignment = 1
 
-[node name="LoadingPanel" type="Control" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow" unique_id=402040018]
+[node name="LoadingPanel" type="Control" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow"]
 visible = false
 layout_mode = 1
 anchors_preset = 15
@@ -466,7 +468,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="ProgressBar" type="ProgressBar" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow/LoadingPanel" unique_id=1426373772]
+[node name="ProgressBar" type="ProgressBar" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow/LoadingPanel"]
 layout_mode = 1
 anchors_preset = 12
 anchor_top = 1.0
@@ -479,7 +481,7 @@ offset_bottom = -12.0
 grow_horizontal = 2
 grow_vertical = 0
 
-[node name="Loading" type="Label" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow/LoadingPanel" unique_id=631823053]
+[node name="Loading" type="Label" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow/LoadingPanel"]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -498,7 +500,7 @@ theme_override_font_sizes/font_size = 37
 text = "Loading..."
 horizontal_alignment = 1
 
-[node name="WelcomePanel" type="Control" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow" unique_id=1112287356]
+[node name="WelcomePanel" type="Control" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow"]
 visible = false
 layout_mode = 1
 anchors_preset = 15
@@ -508,7 +510,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="WelcomeLabel" type="Label" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow/WelcomePanel" unique_id=1384702412]
+[node name="WelcomeLabel" type="Label" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow/WelcomePanel"]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -527,14 +529,14 @@ theme_override_font_sizes/font_size = 37
 text = "Welcome employees"
 horizontal_alignment = 1
 
-[node name="SupportPrompt" type="Control" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow" unique_id=519271368]
+[node name="SupportPrompt" type="Control" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow"]
 anchors_preset = 0
 offset_left = 617.0
 offset_top = 222.0
 offset_right = 775.0
 offset_bottom = 276.0
 
-[node name="Panel" type="Panel" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow/SupportPrompt" unique_id=1584145232]
+[node name="Panel" type="Panel" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow/SupportPrompt"]
 layout_mode = 0
 offset_left = -615.0
 offset_top = -92.0
@@ -542,7 +544,7 @@ offset_right = 777.0
 offset_bottom = 157.0
 theme_override_styles/panel = SubResource("StyleBoxEmpty_mwfav")
 
-[node name="Foto" type="TextureRect" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow/SupportPrompt/Panel" unique_id=1709533551]
+[node name="Foto" type="TextureRect" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow/SupportPrompt/Panel"]
 layout_mode = 0
 offset_left = 1052.0
 offset_top = -59.0
@@ -550,24 +552,24 @@ offset_right = 1349.0
 offset_bottom = 291.0
 texture = ExtResource("10_3p2gp")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow/SupportPrompt/Panel" unique_id=1078273051]
+[node name="VBoxContainer" type="VBoxContainer" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow/SupportPrompt/Panel"]
 layout_mode = 0
 offset_left = -1.0
 offset_top = -127.0
 offset_right = 1392.0
 offset_bottom = 369.0
 
-[node name="VSeparator3" type="VSeparator" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow/SupportPrompt/Panel/VBoxContainer" unique_id=2099520874]
+[node name="VSeparator3" type="VSeparator" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow/SupportPrompt/Panel/VBoxContainer"]
 custom_minimum_size = Vector2(0, 25)
 layout_mode = 2
 theme_override_styles/separator = SubResource("StyleBoxEmpty_ft6cd")
 
-[node name="VSeparator2" type="VSeparator" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow/SupportPrompt/Panel/VBoxContainer" unique_id=951710865]
+[node name="VSeparator2" type="VSeparator" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow/SupportPrompt/Panel/VBoxContainer"]
 custom_minimum_size = Vector2(0, 146)
 layout_mode = 2
 theme_override_styles/separator = SubResource("StyleBoxEmpty_bb450")
 
-[node name="Label" type="Label" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow/SupportPrompt/Panel/VBoxContainer" unique_id=1066860021]
+[node name="Label" type="Label" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow/SupportPrompt/Panel/VBoxContainer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0, 0.11774104, 1)
 theme_override_fonts/font = ExtResource("6_bjd11")
@@ -575,7 +577,7 @@ theme_override_font_sizes/font_size = 23
 text = "Daily Compliance Check"
 horizontal_alignment = 1
 
-[node name="PromptText" type="RichTextLabel" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow/SupportPrompt/Panel/VBoxContainer" unique_id=1197985824]
+[node name="PromptText" type="RichTextLabel" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow/SupportPrompt/Panel/VBoxContainer"]
 custom_minimum_size = Vector2(0, 335)
 layout_mode = 2
 theme_override_colors/default_color = Color(0, 0, 0, 1)
@@ -584,17 +586,17 @@ theme_override_font_sizes/normal_font_size = 37
 text = "Do you support AI?"
 horizontal_alignment = 1
 
-[node name="VSeparator" type="VSeparator" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow/SupportPrompt/Panel/VBoxContainer" unique_id=1702612062]
+[node name="VSeparator" type="VSeparator" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow/SupportPrompt/Panel/VBoxContainer"]
 custom_minimum_size = Vector2(0, 25)
 layout_mode = 2
 theme_override_styles/separator = SubResource("StyleBoxEmpty_3p2gp")
 
-[node name="HBoxContainer" type="HBoxContainer" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow/SupportPrompt/Panel/VBoxContainer" unique_id=2125054266]
+[node name="HBoxContainer" type="HBoxContainer" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow/SupportPrompt/Panel/VBoxContainer"]
 custom_minimum_size = Vector2(500, 50)
 layout_mode = 2
 alignment = 1
 
-[node name="YesButton" type="Button" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow/SupportPrompt/Panel/VBoxContainer/HBoxContainer" unique_id=16671506]
+[node name="YesButton" type="Button" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow/SupportPrompt/Panel/VBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
@@ -602,12 +604,12 @@ theme_override_fonts/font = ExtResource("6_bjd11")
 theme_override_font_sizes/font_size = 37
 text = "Yes"
 
-[node name="HSeparator" type="HSeparator" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow/SupportPrompt/Panel/VBoxContainer/HBoxContainer" unique_id=634294918]
+[node name="HSeparator" type="HSeparator" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow/SupportPrompt/Panel/VBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(25, 0)
 layout_mode = 2
 theme_override_styles/separator = SubResource("StyleBoxEmpty_cvmbd")
 
-[node name="NoButton" type="Button" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow/SupportPrompt/Panel/VBoxContainer/HBoxContainer" unique_id=2092790231]
+[node name="NoButton" type="Button" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow/SupportPrompt/Panel/VBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
@@ -615,13 +617,13 @@ theme_override_fonts/font = ExtResource("6_bjd11")
 theme_override_font_sizes/font_size = 37
 text = "no"
 
-[node name="FakeCursor" type="Sprite2D" parent="UIRoot/UIContainer/PCScreenArea" unique_id=178944730]
+[node name="FakeCursor" type="Sprite2D" parent="UIRoot/UIContainer/PCScreenArea"]
 position = Vector2(-246, -576)
 texture = ExtResource("13_mwfav")
 
-[node name="ScreenOverlay" type="CanvasLayer" parent="UIRoot/UIContainer/PCScreenArea" unique_id=1945812584]
+[node name="ScreenOverlay" type="CanvasLayer" parent="UIRoot/UIContainer/PCScreenArea"]
 
-[node name="EffectRect" type="ColorRect" parent="UIRoot/UIContainer/PCScreenArea/ScreenOverlay" unique_id=828080887]
+[node name="EffectRect" type="ColorRect" parent="UIRoot/UIContainer/PCScreenArea/ScreenOverlay"]
 material = SubResource("ShaderMaterial_bjd11")
 offset_left = 248.0
 offset_top = 578.0
@@ -630,9 +632,9 @@ offset_bottom = 1080.0
 mouse_filter = 2
 color = Color(1, 1, 1, 0)
 
-[node name="Dialogue" type="CanvasLayer" parent="UIRoot/UIContainer/PCScreenArea" unique_id=1833051946]
+[node name="Dialogue" type="CanvasLayer" parent="UIRoot/UIContainer/PCScreenArea"]
 
-[node name="DialogueLabel" type="Label" parent="UIRoot/UIContainer/PCScreenArea/Dialogue" unique_id=1667836141]
+[node name="DialogueLabel" type="Label" parent="UIRoot/UIContainer/PCScreenArea/Dialogue"]
 offset_top = 54.0
 offset_right = 1920.0
 offset_bottom = 114.0
@@ -644,9 +646,9 @@ theme_override_font_sizes/font_size = 48
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="HorrorOverlay" type="CanvasLayer" parent="UIRoot/UIContainer" unique_id=1118816413]
+[node name="HorrorOverlay" type="CanvasLayer" parent="UIRoot/UIContainer"]
 
-[node name="EffectRect" type="ColorRect" parent="UIRoot/UIContainer/HorrorOverlay" unique_id=184642712]
+[node name="EffectRect" type="ColorRect" parent="UIRoot/UIContainer/HorrorOverlay"]
 material = SubResource("ShaderMaterial_nxtc6")
 anchors_preset = 15
 anchor_right = 1.0
@@ -656,9 +658,9 @@ grow_vertical = 2
 mouse_filter = 2
 color = Color(1, 1, 1, 0)
 
-[node name="AudioManager" type="Node" parent="." unique_id=2103531531]
+[node name="AudioManager" type="Node" parent="."]
 
-[node name="Music" type="AudioStreamPlayer2D" parent="AudioManager" unique_id=1717378328]
+[node name="Music" type="AudioStreamPlayer2D" parent="AudioManager"]
 stream = ExtResource("15_3p2gp")
 
-[node name="SFX" type="AudioStreamPlayer2D" parent="AudioManager" unique_id=1138068450]
+[node name="SFX" type="AudioStreamPlayer2D" parent="AudioManager"]
