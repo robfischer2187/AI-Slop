@@ -539,9 +539,13 @@ theme_override_styles/panel = SubResource("StyleBoxEmpty_mwfav")
 [node name="VBoxContainer" type="VBoxContainer" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow/SupportPrompt/Panel"]
 layout_mode = 0
 offset_left = -1.0
-offset_top = 35.0
+offset_top = -127.0
 offset_right = 1392.0
-offset_bottom = 209.0
+offset_bottom = 369.0
+
+[node name="VSeparator2" type="VSeparator" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow/SupportPrompt/Panel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 146)
+layout_mode = 2
 
 [node name="Label" type="Label" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow/SupportPrompt/Panel/VBoxContainer"]
 layout_mode = 2

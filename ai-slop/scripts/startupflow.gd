@@ -15,6 +15,8 @@ enum Phase { LOGIN, LOADING, WELCOME, PROMPT }
 @onready var welcome_label: Label = get_node("WelcomePanel/WelcomeLabel")
 
 @onready var support_prompt: Control = get_node("SupportPrompt")
+@onready var sep: VSeparator = get_node("SupportPrompt/Panel/VBoxContainer/VSeparator2")
+@onready var comp: Label = get_node("SupportPrompt/Panel/VBoxContainer/Label")
 @onready var prompt_text: Label = get_node("SupportPrompt/Panel/VBoxContainer/PromptText")
 @onready var yes_button: Button = get_node("SupportPrompt/Panel/VBoxContainer/HBoxContainer/YesButton")
 @onready var no_button: Button = get_node("SupportPrompt/Panel/VBoxContainer/HBoxContainer/NoButton")
@@ -37,12 +39,14 @@ var free_mouse := false
 signal startup_finished(support_forced: bool)
 
 var click_player: AudioStreamPlayer
+var no_glitch_player: AudioStreamPlayer
 
 var phase: Phase = Phase.LOGIN
 var employee_id: String = ""
 var support_forced: bool = false
 var forced_yes_mode := false
 var start_message_visible := false
+var intro_message_active := false
 
 func _ready() -> void:
 	if debug_fast_mode:
@@ -75,6 +79,10 @@ func _ready() -> void:
 	username_input.visible = false
 
 	username_input.text_changed.connect(_on_username_changed)
+
+	no_glitch_player = AudioStreamPlayer.new()
+	no_glitch_player.stream = preload("res://assets/sounds/no_glitch.mp3")
+	add_child(no_glitch_player)
 
 func _on_username_changed(new_text: String) -> void:
 	var upper = new_text.to_upper()
@@ -163,7 +171,36 @@ func _show_welcome_then_prompt() -> void:
 	await get_tree().create_timer(welcome_hold_seconds).timeout
 
 	_set_phase(Phase.PROMPT)
-	show_prompt_default()
+	show_intro_message()
+
+func show_intro_message():
+	intro_message_active = true
+	support_prompt.visible = true
+	comp.visible = false
+	sep.visible = false
+	
+	yes_button.visible = false
+	no_button.visible = false
+	
+	var text = "Today, you are tasked with AI Content Supply Flow.\n" + \
+"Your task is to feed the Artificial Intelligence\n" + \
+"with content that corresponds to the prompt\n" + \
+"given to you at the top of your screen.\n" + \
+"Feeding the AI with incorrect content is forbidden.\n" + \
+"Too many incorrect inputs can damage the AI\n" + \
+"and cause harm to our company.\n" + \
+"This is your supervisor,\nMr. Alistair Slop.\n" + \
+"He will be monitoring your progress.\n" + \
+"Ask him for help if you encounter problems.\n" + \
+"Thank you for your hard work.\n" + \
+"You can't spell SMAILE without AI."
+	
+	prompt_text.add_theme_font_size_override("font_size", 18)
+	
+	await set_prompt_text_glitch(text)
+	
+	yes_button.visible = true
+	yes_button.text = "CONTINUE"
 
 func show_prompt_default():
 	forced_yes_mode = false
@@ -179,6 +216,12 @@ func show_prompt_default():
 	no_button.visible = true
 
 func _on_support_yes() -> void:
+	if intro_message_active:
+		intro_message_active = false
+		prompt_text.add_theme_font_size_override("font_size", 37)
+		show_prompt_default()
+		return
+	
 	if not start_message_visible:
 		start_message_visible = true
 		await show_start_message()
@@ -201,6 +244,8 @@ func _on_support_no() -> void:
 	forced_yes_mode = true
 
 	no_button.text = "..."
+	
+	no_glitch_player.play()
 	
 	await trigger_violent_glitch()
 	
