@@ -18,6 +18,7 @@ extends Node2D
 @onready var mistakes_label: Label = $UIRoot/UIContainer/PCScreenArea/MistakesLabel
 @onready var progress_label: Label = $UIRoot/UIContainer/PCScreenArea/ProgressLabel
 @onready var audio: AudioStreamPlayer2D = $AudioManager/Music
+var mistake_player: AudioStreamPlayer2D
 
 var strikes: int = 0
 var task_index: int = 0
@@ -83,6 +84,11 @@ func _ready() -> void:
 	var startup_flow: Node = $UIRoot/UIContainer/PCScreenArea/StartupFlow
 	startup_flow.startup_finished.connect(_on_startup_finished)
 	set_process(false) 
+
+	# create a one-off AudioStreamPlayer2D for mistake sounds
+	mistake_player = AudioStreamPlayer2D.new()
+	mistake_player.stream = preload("res://assets/sounds/mistake-sound.mp3")
+	$AudioManager.add_child(mistake_player)
 
 func _on_startup_finished(_support_forced: bool) -> void:
 	set_process(true)
@@ -208,6 +214,8 @@ func submit_input(input_name: String) -> void:
 	else:
 		sabotage_score += 1
 		suspicion += 0.3
+		if mistake_player:
+			mistake_player.play()
 		flash_feedback(Color(1, 0, 0))
 		trigger_glitch()
 		

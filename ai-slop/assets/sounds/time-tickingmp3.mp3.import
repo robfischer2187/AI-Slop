@@ -12,7 +12,7 @@ dest_files=["res://.godot/imported/time-tickingmp3.mp3-8cb8a387279cb28caa38853e9
 
 [params]
 
-loop=false
+loop=true
 loop_offset=0
 bpm=0
 beat_count=0
