@@ -16,8 +16,12 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 
 config/name="AI Slop"
 run/main_scene="uid://dg3e0ra0x5bm7"
-config/features=PackedStringArray("4.6", "Forward Plus")
+config/features=PackedStringArray("4.5", "Forward Plus")
+boot_splash/fullsize=false
+boot_splash/use_filter=false
+boot_splash/image="uid://4xbvwh4bmksp"
 config/icon="res://icon.svg"
+boot_splash/minimum_display_time=1500
 
 [display]
 

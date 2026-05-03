@@ -31,7 +31,11 @@ var office_player: AudioStreamPlayer2D
 var office_r_player: AudioStreamPlayer2D
 var good_ending: AudioStreamPlayer2D
 var bad_ending: AudioStreamPlayer2D
-
+var munch_player: AudioStreamPlayer2D
+var yum_player: AudioStreamPlayer2D
+var bah_player: AudioStreamPlayer2D
+var breath_player: AudioStreamPlayer2D
+var step_player: AudioStreamPlayer2D
 
 var strikes: int = 0
 var task_index: int = 0
@@ -76,6 +80,8 @@ var next_allowed_check_time: float = 0.0
 var next_glitch_time: float = 0.0
 
 var meltdown_active := false
+
+var end_panic := false
 
 const HEALTH_TEXTURES := [
 	"res://assets/art/AI_GAME HEALTH 1.png",
@@ -222,6 +228,33 @@ func _ready() -> void:
 	office_player.finished.connect(_on_office_finished)
 	office_r_player.finished.connect(_on_office_r_finished)
 
+	munch_player = AudioStreamPlayer2D.new()
+	munch_player.stream = preload("res://assets/sounds/munch.mp3")
+	$AudioManager.add_child(munch_player)
+
+	yum_player = AudioStreamPlayer2D.new()
+	yum_player.stream = preload("res://assets/sounds/yum.mp3")
+	yum_player.volume_db = -6
+	$AudioManager.add_child(yum_player)
+
+	bah_player = AudioStreamPlayer2D.new()
+	bah_player.stream = preload("res://assets/sounds/bah.mp3")
+	$AudioManager.add_child(bah_player)
+
+	breath_player = AudioStreamPlayer2D.new()
+	breath_player.stream = preload("res://assets/sounds/heavy_breath.mp3")
+	breath_player.volume_db = 6
+	$AudioManager.add_child(breath_player)
+
+	step_player = AudioStreamPlayer2D.new()
+	step_player.stream = preload("res://assets/sounds/steps.mp3")
+	step_player.volume_db = 8
+	step_player.bus = "Master"
+	$AudioManager.add_child(step_player)
+
+	good_ending.process_mode = Node.PROCESS_MODE_ALWAYS
+	bad_ending.process_mode = Node.PROCESS_MODE_ALWAYS
+
 func _on_office_finished():
 	office_player.play()
 
@@ -295,6 +328,14 @@ func _process(delta):
 			office_player.pitch_scale = randf_range(0.85, 0.95)
 		if randf() < 0.01:
 			office_r_player.pitch_scale = randf_range(0.8, 0.9)
+	
+	if step_player.playing:
+		if randf() < 0.05:
+			step_player.pitch_scale += randf_range(-0.05, 0.05)
+	
+	if step_player.playing:
+		step_player.pitch_scale = lerp(0.6, 1.0, 1.0 - suspicion)
+	step_player.global_position = alastor_sprite.global_position
 
 func init_virtual_mouse():
 	var rect = cursor_blocker.get_global_rect()
@@ -401,14 +442,57 @@ func load_task() -> void:
 	current_task = pool.pick_random()
 	
 	task_text.text = current_task["prompt"]
-	current_time = task_timer + draggable_items.get_child_count() * 0.15
 	
-	if task_index > 5:
-		task_timer = 4.5
-	if task_index > 11:
-		task_timer = 4.0
-	if task_index > 17:
-		task_timer = 3.5
+	var chaos = float(ai_score + sabotage_score)
+	var imbalance = abs(ai_score - sabotage_score)
+	
+	var progress = max(ai_score, sabotage_score) / 24.0
+	progress = clamp(progress, 0.0, 1.0)
+	
+	var base_time = 5.0
+	
+	base_time -= clamp(chaos * 0.05, 0.0, 1.5)
+	base_time -= clamp(suspicion * 1.5, 0.0, 1.5)
+	base_time -= clamp(imbalance * 0.03, 0.0, 0.8)
+	
+	base_time -= progress * 2.5
+	
+	task_timer = clamp(base_time, 0.9, 5.0)
+	
+	if progress > 0.7:
+		task_timer *= 0.85
+	
+	if progress > 0.85:
+		task_timer *= 0.75
+	
+	if progress > 0.95:
+		task_timer *= 0.65
+	
+	if end_panic:
+		current_time = randf_range(0.2, 0.6)
+	else:
+		current_time = task_timer + draggable_items.get_child_count() * 0.08
+	
+	if task_timer < 2.0:
+		trigger_glitch()
+		if randf() < 0.4:
+			play_glitch_sound()
+	
+	if progress > 0.75 and randf() < 0.3:
+		await get_tree().create_timer(randf_range(0.1, 0.3)).timeout
+		current_task = pool.pick_random()
+		task_text.text = current_task["prompt"]
+	
+	if progress > 0.9 and randf() < 0.45:
+		await get_tree().create_timer(randf_range(0.08, 0.2)).timeout
+		current_task = pool.pick_random()
+		task_text.text = current_task["prompt"]
+	
+		if end_panic:
+			for i in range(randi_range(1, 3)):
+				await get_tree().create_timer(randf_range(0.05, 0.15)).timeout
+				current_task = pool.pick_random()
+				task_text.text = current_task["prompt"]
 	
 	spawn_items()
 	update_ui()
@@ -428,7 +512,11 @@ func submit_input(item) -> void:
 	
 	var is_actually_correct = item.texture_path == current_task["correct_texture"]
 	
+	munch_player.play()
+	
 	if is_actually_correct:
+		yum_player.play()
+		
 		ai_score += 1
 		positive_player.play()
 		suspicion = max(suspicion - 0.1, 0)
@@ -439,6 +527,8 @@ func submit_input(item) -> void:
 			scored_during_watch = true
 			show_alastor_approval()
 	else:
+		bah_player.play()
+		
 		sabotage_score += 1
 		suspicion += 0.45 if is_being_watched else 0.3
 		mistake_player.play()
@@ -520,6 +610,8 @@ func update_alastor_roaming_glitch(delta):
 		await alastor_mid_walk_check()
 
 func alastor_mid_walk_check():
+	step_player.stop()
+	
 	if is_being_watched:
 		return
 	
@@ -618,6 +710,13 @@ func play_walk_animation():
 
 	walk_start_time = Time.get_ticks_msec() / 1000.0
 
+	var walk_speed = randf_range(0.12, 0.22)
+	alastor_anim.speed_scale = walk_speed
+
+	step_player.pitch_scale = randf_range(0.1, 0.5)
+	step_player.volume_db = lerp(6, 14, suspicion)
+	step_player.play()
+
 	if walking_right:
 		sprite.texture = preload("res://assets/art/AI GAME BOSS walktoright.png")
 	else:
@@ -626,6 +725,8 @@ func play_walk_animation():
 	alastor_anim.play(target_anim)
 
 	await alastor_anim.animation_finished
+
+	step_player.stop()
 
 	walking_right = !walking_right
 
@@ -636,6 +737,8 @@ func ensure_alastor_visible():
 	alastor_sprite.visible = true
 
 func alastor_watch_phase():
+	step_player.stop()
+	
 	if not game_running:
 		return
 	
@@ -750,6 +853,13 @@ func restore_walk_state():
 		if alastor_anim.current_animation != "walk_left":
 			alastor_anim.play("walk_left")
 
+	if not step_player.playing:
+		var walk_speed = alastor_anim.speed_scale
+		
+		step_player.pitch_scale = walk_speed * 0.6
+		step_player.volume_db = lerp(6, 14, suspicion)
+		step_player.play()
+
 func show_alastor_angry():
 	show_dialogue([
 		"What are you doing...",
@@ -824,6 +934,8 @@ func get_caught_by_alastor() -> void:
 		show_dialogue("You’re killing It! This… this is your final warning.")
 	elif strikes >= 3:
 		show_dialogue("What a shame. Don't worry... you'll still be part of It.")
+		breath_player.pitch_scale = randf_range(0.85, 1.1)
+		breath_player.play()
 		await get_tree().create_timer(3).timeout
 		trigger_neutral_ending()
 
@@ -904,10 +1016,22 @@ func alastor_micro_glitch():
 	alastor_glitching_visual = false
 
 func check_end_conditions():
+	if sabotage_score >= 20 and not end_panic:
+		start_end_panic()
+	
 	if sabotage_score >= 24:
 		trigger_good_ending()
 	elif ai_score >= 24:
 		trigger_bad_ending()
+
+func start_end_panic():
+	end_panic = true
+	
+	task_timer *= 0.4
+	
+	suspicion = min(suspicion + 0.4, 1.0)
+	
+	trigger_glitch()
 
 func trigger_good_ending() -> void:
 	if ending_active:
@@ -916,8 +1040,21 @@ func trigger_good_ending() -> void:
 	game_running = false
 	
 	trigger_glitch()
-	await get_tree().create_timer(0.9).timeout
-	
+
+	good_ending.stream = preload("res://assets/sounds/cheer.mp3")
+	good_ending.pitch_scale = randf_range(0.6, 0.8)
+	good_ending.volume_db = 4
+	good_ending.play()
+
+	var extra = AudioStreamPlayer2D.new()
+	extra.stream = good_ending.stream
+	extra.pitch_scale = randf_range(0.4, 0.7)
+	extra.volume_db = randf_range(2, 6)
+	extra.process_mode = Node.PROCESS_MODE_ALWAYS
+	$AudioManager.add_child(extra)
+	extra.play()
+
+	await get_tree().create_timer(1.5).timeout
 	await show_ending_newspaper(NEWSPAPER_GOOD, 0.6)
 
 func trigger_neutral_ending() -> void:
@@ -934,8 +1071,24 @@ func trigger_bad_ending() -> void:
 	game_running = false
 	
 	trigger_glitch()
-	await get_tree().create_timer(0.9).timeout
-	
+
+	bad_ending.stream = preload("res://assets/sounds/laugh.mp3")
+	bad_ending.pitch_scale = randf_range(0.5, 0.75)
+	bad_ending.volume_db = 6
+	bad_ending.play()
+
+	for i in range(2):
+		var extra = AudioStreamPlayer2D.new()
+		extra.stream = bad_ending.stream
+		extra.pitch_scale = randf_range(0.4, 0.9)
+		extra.volume_db = randf_range(3, 8)
+		extra.process_mode = Node.PROCESS_MODE_ALWAYS
+		$AudioManager.add_child(extra)
+		
+		await get_tree().create_timer(randf_range(0.05, 0.2)).timeout
+		extra.play()
+
+	await get_tree().create_timer(1.5).timeout
 	await show_ending_newspaper(NEWSPAPER_BAD, 0.6)
 
 func start_neutral_meltdown():
@@ -1280,7 +1433,12 @@ func update_horror_shader():
 	horror_mat.set_shader_parameter("flicker_strength", 0.01 + suspicion * 0.05)
 
 func spawn_items():
-	var spawn_count = randi_range(3, 5)
+	var chaos = float(ai_score + sabotage_score)
+	var stress = clamp(suspicion, 0.0, 1.0)
+	
+	var base_spawn = 3
+	var extra_spawn = int(chaos * 0.15) + int(stress * 4.0)
+	var spawn_count = clamp(base_spawn + extra_spawn, 3, 10)
 	
 	var phase = get_current_phase()
 	var pool = task_pool[phase]
@@ -1302,7 +1460,7 @@ func spawn_items():
 			item.is_correct = true
 			spawned_correct = true
 		else:
-			if roll < 0.35:
+			if roll < 0.4:
 				item.item_name = correct_name
 				item.texture_path = wrong_texture
 				item.is_correct = false
@@ -1323,7 +1481,12 @@ func spawn_items():
 	cleanup_items()
 
 func cleanup_items():
-	var max_items = 32
+	var chaos = float(ai_score + sabotage_score)
+	var stress = clamp(suspicion, 0.0, 1.0)
+	
+	var max_items = int(32 + chaos * 1.2 + stress * 25.0)
+	max_items = clamp(max_items, 32, 80)
+	
 	var items = draggable_items.get_children()
 	
 	if items.size() <= max_items:

@@ -1,4 +1,4 @@
-[gd_scene load_steps=29 format=3 uid="uid://dg3e0ra0x5bm7"]
+[gd_scene load_steps=30 format=3 uid="uid://dg3e0ra0x5bm7"]
 
 [ext_resource type="Script" uid="uid://cdsr50nwwc5ep" path="res://scripts/main.gd" id="1_elqb8"]
 [ext_resource type="Script" uid="uid://c74rylmp2fn4t" path="res://scripts/input_slot.gd" id="2_0bbpv"]
@@ -10,6 +10,7 @@
 [ext_resource type="Shader" uid="uid://bdo5nvbr4iex" path="res://scripts/shader/horror.gdshader" id="6_c01mt"]
 [ext_resource type="Script" uid="uid://shgx88qq31fp" path="res://scripts/startupflow.gd" id="6_wp0k4"]
 [ext_resource type="FontFile" uid="uid://bvnbmpp8xr412" path="res://assets/fonts/Sniglet-Regular.ttf" id="7_nxtc6"]
+[ext_resource type="Texture2D" uid="uid://co8wo7bax6j47" path="res://assets/art/AI GAME ai icon.png" id="8_cvmbd"]
 [ext_resource type="Shader" uid="uid://dclb2ajscetcp" path="res://scripts/shader/screen.gdshader" id="9_wp0k4"]
 [ext_resource type="Texture2D" uid="uid://dt7tatss04b1w" path="res://assets/art/AI GAME supervisor photo.png" id="10_3p2gp"]
 [ext_resource type="Texture2D" uid="uid://dd4w1qta8jvnr" path="res://assets/art/AI GAME COWORKER NORM (1).png" id="10_lhr70"]
@@ -362,12 +363,14 @@ anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
 
-[node name="Slot" type="Panel" parent="UIRoot/UIContainer/PCScreenArea/InputSlots"]
+[node name="Slot" type="TextureRect" parent="UIRoot/UIContainer/PCScreenArea/InputSlots"]
 layout_mode = 0
 offset_left = 67.0
-offset_top = 240.0
-offset_right = 150.0
-offset_bottom = 323.0
+offset_top = 164.0
+offset_right = 261.1889
+offset_bottom = 357.0
+texture = ExtResource("8_cvmbd")
+expand_mode = 1
 script = ExtResource("2_0bbpv")
 
 [node name="DraggableItems" type="Control" parent="UIRoot/UIContainer/PCScreenArea"]
@@ -392,6 +395,7 @@ mouse_filter = 2
 color = Color(1, 1, 1, 0)
 
 [node name="GlitchOverlay" type="ColorRect" parent="UIRoot/UIContainer/PCScreenArea"]
+z_index = 100
 layout_mode = 0
 offset_right = 1394.0
 offset_bottom = 502.0
