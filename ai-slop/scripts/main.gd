@@ -78,9 +78,9 @@ var next_glitch_time: float = 0.0
 var meltdown_active := false
 
 const HEALTH_TEXTURES := [
-	"res://assets/art/AI_GAME HEALTH 3.png",
-	"res://assets/art/AI_GAME HEALTH 2.png",
 	"res://assets/art/AI_GAME HEALTH 1.png",
+	"res://assets/art/AI_GAME HEALTH 2.png",
+	"res://assets/art/AI_GAME HEALTH 3.png",
 ]
 
 var task_pool: Array = [
@@ -297,7 +297,10 @@ func _setup_health_sprites() -> void:
 		health_sprite.custom_minimum_size = Vector2(140, 140)
 		health_sprite.size = Vector2(140, 140)
 		health_sprite.z_index = 200
-		pc_screen.get_parent().add_child(health_sprite)
+		if pc_screen.has_node("Dialogue"):
+			pc_screen.get_node("Dialogue").add_child(health_sprite)
+		else:
+			pc_screen.get_parent().add_child(health_sprite)
 		health_sprites.append(health_sprite)
 
 	_update_health_sprite_layout()
@@ -308,12 +311,12 @@ func _update_health_sprite_layout() -> void:
 		return
 
 	var screen_rect := pc_screen.get_global_rect()
-	var start_x := screen_rect.end.x + 10.0
 	var start_y := screen_rect.position.y + 24.0
 	var gap_y := 150.0
 
 	for i in range(health_sprites.size()):
 		var sprite := health_sprites[i]
+		var start_x := screen_rect.end.x - (sprite.size.x * 0.3)
 		sprite.global_position = Vector2(start_x, start_y + (i * gap_y))
 
 
@@ -326,7 +329,9 @@ func _refresh_health_sprites() -> void:
 		var should_drop := i < strikes
 		if should_drop:
 			sprite.visible = false
-			sprite.global_position = Vector2(pc_screen.get_global_rect().end.x + 10.0, pc_screen.get_global_rect().position.y + 24.0 + (i * 150) + 120)
+			var rect := pc_screen.get_global_rect()
+			var drop_x := rect.end.x - (sprite.size.x * 0.5)
+			sprite.global_position = Vector2(drop_x, rect.position.y + 24.0 + (i * 150) + 120)
 		else:
 			sprite.visible = true
 			sprite.modulate = Color(1, 1, 1, 1)

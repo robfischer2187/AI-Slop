@@ -2,11 +2,7 @@
 
 importer="mp3"
 type="AudioStreamMP3"
-<<<<<<< HEAD
-uid="uid://dv06rnru8gtay"
-=======
-uid="uid://dl0014hpk8gwo"
->>>>>>> main
+uid="uid://cldg02g58crdx"
 path="res://.godot/imported/time-tickingmp3.mp3-8cb8a387279cb28caa38853e914b609d.mp3str"
 
 [deps]
@@ -16,11 +12,7 @@ dest_files=["res://.godot/imported/time-tickingmp3.mp3-8cb8a387279cb28caa38853e9
 
 [params]
 
-<<<<<<< HEAD
 loop=false
-=======
-loop=true
->>>>>>> main
 loop_offset=0
 bpm=0
 beat_count=0
