@@ -24,6 +24,8 @@ extends Node2D
 var mistake_player: AudioStreamPlayer2D
 var positive_player: AudioStreamPlayer2D
 var caught_player: AudioStreamPlayer2D
+var scream_player: AudioStreamPlayer2D
+var glitch_player: AudioStreamPlayer2D
 
 var strikes: int = 0
 var task_index: int = 0
@@ -71,36 +73,24 @@ var meltdown_active := false
 
 var task_pool: Array = [
 	[
-		{"prompt": "FEED IT: DOGS", "correct": "DOGS"},
-		{"prompt": "FEED IT: CATS", "correct": "CATS"},
-		{"prompt": "FEED IT: FLOWERS", "correct": "FLOWERS"},
-		{"prompt": "FEED IT: SUNSETS", "correct": "SUNSETS"},
-		{"prompt": "FEED IT: HAPPY FAMILIES", "correct": "HAPPY FAMILIES"},
-		{"prompt": "FEED IT: BIRTHDAY CAKES", "correct": "BIRTHDAY CAKES"}
-	],
-	[
-		{"prompt": "FEED IT: SMILING PEOPLE", "correct": "SMILING PEOPLE"},
-		{"prompt": "FEED IT: CROWDS", "correct": "CROWDS"},
-		{"prompt": "FEED IT: OFFICE WORKERS", "correct": "OFFICE WORKERS"},
-		{"prompt": "FEED IT: LAUGHING PEOPLE", "correct": "LAUGHING PEOPLE"},
-		{"prompt": "FEED IT: PLAYGROUNDS", "correct": "PLAYGROUNDS"},
-		{"prompt": "FEED IT: FAMILY PHOTOS", "correct": "FAMILY PHOTOS"}
-	],
-	[
-		{"prompt": "FEED IT: BURNING HOUSES", "correct": "BURNING HOUSES"},
-		{"prompt": "FEED IT: WAR FOOTAGE", "correct": "WAR FOOTAGE"},
-		{"prompt": "FEED IT: RIOTS", "correct": "RIOTS"},
-		{"prompt": "FEED IT: HOSPITALS", "correct": "HOSPITALS"},
-		{"prompt": "FEED IT: PANIC", "correct": "PANIC"},
-		{"prompt": "FEED IT: ACCIDENTS", "correct": "ACCIDENTS"}
-	],
-	[
-		{"prompt": "FEED IT: SCREAMING CHILDREN", "correct": "SCREAMING CHILDREN"},
-		{"prompt": "FEED IT: HUMAN FEAR", "correct": "HUMAN FEAR"},
-		{"prompt": "FEED IT: DESPERATION", "correct": "DESPERATION"},
-		{"prompt": "FEED IT: LAST WORDS", "correct": "LAST WORDS"},
-		{"prompt": "FEED IT: THE ONES WHO RAN", "correct": "THE ONES WHO RAN"},
-		{"prompt": "FEED IT: EVERYTHING LEFT OF THEM", "correct": "EVERYTHING LEFT OF THEM"}
+		{
+			"prompt": "FEED IT: HAPPINESS",
+			"correct": "HAPPINESS",
+			"correct_texture": "res://assets/art/AI GAME ICON happiness.png",
+			"wrong_texture": "res://assets/art/AI GAME ICON happiness2.png"
+		},
+		{
+			"prompt": "FEED IT: HUGS",
+			"correct": "HUGS",
+			"correct_texture": "res://assets/art/AI GAME ICON hug.png",
+			"wrong_texture": "res://assets/art/AI GAME ICON hug2.png"
+		},
+		{
+			"prompt": "FEED IT: PUPPIES",
+			"correct": "PUPPIES",
+			"correct_texture": "res://assets/art/AI GAME ICON puppy.png",
+			"wrong_texture": "res://assets/art/AI GAME ICON puppy2.png"
+		}
 	]
 ]
 
@@ -120,6 +110,13 @@ func _ready() -> void:
 	caught_player = AudioStreamPlayer2D.new()
 	caught_player.stream = preload("res://assets/sounds/boss-watching.mp3")
 	$AudioManager.add_child(caught_player)
+
+	scream_player = AudioStreamPlayer2D.new()
+	scream_player.stream = preload("res://assets/sounds/scream.mp3")
+	$AudioManager.add_child(scream_player)
+
+	glitch_player = AudioStreamPlayer2D.new()
+	$AudioManager.add_child(glitch_player)
 
 func _on_startup_finished(_support_forced: bool) -> void:
 	set_process(true)
@@ -230,7 +227,7 @@ func update_ui():
 	mistakes_label.text = "MISTAKES: " + str(sabotage_score)
 	progress_label.text = "FED: " + str(ai_score)
 
-func submit_input(input_name: String) -> void:
+func submit_input(item) -> void:
 	if not game_running:
 		return
 	
@@ -239,7 +236,11 @@ func submit_input(input_name: String) -> void:
 	
 	input_locked = true
 	
-	if input_name == current_task["correct"]:
+	var correct_name = current_task["correct"]
+	var is_texture_correct = not item.texture_path.get_file().contains("2")
+	var is_actually_correct = item.item_name == correct_name and is_texture_correct
+	
+	if is_actually_correct:
 		ai_score += 1
 		positive_player.play()
 		suspicion = max(suspicion - 0.1, 0)
@@ -372,6 +373,8 @@ func alastor_mid_walk_check():
 	
 	await alastor_glitch_transition()
 	
+	play_glitch_sound()
+	
 	is_being_watched = false
 	
 	restore_walk_state()
@@ -489,6 +492,8 @@ func alastor_watch_phase():
 	
 	await alastor_glitch_transition()
 
+	play_glitch_sound()
+
 	walking_right = !walking_right
 	restore_walk_state()
 	alastor_anim.speed_scale = randf_range(0.12, 0.22)
@@ -505,6 +510,9 @@ func alastor_pre_watch_glitch():
 	
 	for i in range(steps):
 		var t = float(i) / steps
+		
+		if randf() < 0.3:
+			play_glitch_sound()
 		
 		var shake_x = lerp(4.0, 18.0, t)
 		var shake_y = lerp(3.0, 14.0, t)
@@ -648,7 +656,6 @@ func show_alastor_approval():
 	].pick_random())
 
 func alastor_glitch_transition():
-	
 	alastor_glitching_visual = true
 	
 	var intensity = lerp(4, 10, suspicion)
@@ -656,6 +663,9 @@ func alastor_glitch_transition():
 	var original_rot = alastor_sprite_base_rotation
 	
 	for i in range(int(intensity)):
+		if randf() < 0.25:
+			play_glitch_sound()
+		
 		alastor_sprite.position = original_pos + Vector2(
 			randf_range(-12, 12),
 			randf_range(-10, 10)
@@ -675,6 +685,8 @@ func alastor_glitch_transition():
 	ensure_alastor_visible()
 	alastor_sprite.position = original_pos
 	alastor_sprite.rotation_degrees = original_rot
+	
+	play_glitch_sound()
 	
 	alastor_glitching_visual = false
 
@@ -723,6 +735,29 @@ func trigger_bad_ending() -> void:
 
 func start_neutral_meltdown():
 	meltdown_active = true
+	
+	# BASE SCREAM (loud)
+	scream_player.pitch_scale = randf_range(0.7, 1.2)
+	scream_player.volume_db = 10
+	scream_player.play()
+	
+	# 🔴 ADDITIONAL LAYERS (desync chaos)
+	for i in range(3):
+		var extra = AudioStreamPlayer2D.new()
+		extra.stream = scream_player.stream
+		extra.pitch_scale = randf_range(0.6, 1.4)
+		extra.volume_db = randf_range(6, 12)
+		$AudioManager.add_child(extra)
+		
+		await get_tree().create_timer(randf_range(0.05, 0.25)).timeout
+		extra.play()
+	
+	# 🔴 RAPID BURST OVERLOAD
+	for i in range(4):
+		await get_tree().create_timer(randf_range(0.03, 0.12)).timeout
+		scream_player.stop()
+		scream_player.pitch_scale = randf_range(0.5, 1.5)
+		scream_player.play()
 	
 	alastor_root.visible = true
 	alastor_anim.stop()
@@ -986,21 +1021,38 @@ func update_horror_shader():
 	horror_mat.set_shader_parameter("flicker_strength", 0.01 + suspicion * 0.05)
 
 func spawn_items():
-	var spawn_count = randi_range(2, 4)
+	var spawn_count = randi_range(3, 5)
 	
 	var phase = get_current_phase()
 	var pool = task_pool[phase]
+	
 	var correct_name = current_task["correct"]
+	var correct_texture = current_task["correct_texture"]
+	var wrong_texture = current_task["wrong_texture"]
 	
 	for i in range(spawn_count):
 		var item = draggable_scene.instantiate()
 		
-		var is_correct = randf() < 0.3
+		var roll = randf()
 		
-		if is_correct:
+		if roll < 0.25:
 			item.item_name = correct_name
+			item.texture_path = correct_texture
+			item.is_correct = true
+		elif roll < 0.5:
+			item.item_name = correct_name
+			item.texture_path = wrong_texture
+			item.is_correct = false
 		else:
-			item.item_name = pool.pick_random()["correct"]
+			var random_task = pool.pick_random()
+			item.item_name = random_task["correct"]
+			
+			if randf() < 0.5:
+				item.texture_path = random_task["correct_texture"]
+			else:
+				item.texture_path = random_task["wrong_texture"]
+			
+			item.is_correct = false
 		
 		item.position = get_random_spawn_position()
 		draggable_items.add_child(item)
@@ -1039,5 +1091,20 @@ func try_drop_item(item):
 	
 	if slot_rect.has_point(item_center):
 		item.global_position = slot.global_position + slot.size * 0.5 - item.size * 0.5
-		submit_input(item.item_name)
+		submit_input(item)
 		item.queue_free()
+
+func play_glitch_sound():
+	var sounds = [
+		preload("res://assets/sounds/glitch.mp3"),
+		preload("res://assets/sounds/glitch2.mp3"),
+		preload("res://assets/sounds/glitch3.mp3")
+	]
+	
+	glitch_player.stop()
+	glitch_player.stream = sounds.pick_random()
+	
+	glitch_player.pitch_scale = randf_range(1.8, 2.2)
+	glitch_player.volume_db = randf_range(4, 10)
+	
+	glitch_player.play()
