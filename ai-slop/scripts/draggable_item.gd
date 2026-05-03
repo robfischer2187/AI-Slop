@@ -26,12 +26,17 @@ func _ready():
 func setup_text():
 	var label = Label.new()
 	label.text = item_name
+	
+	var font = load("res://assets/fonts/IBMPlexMono-SemiBold.ttf")
+	label.add_theme_font_override("font", font)
 	label.add_theme_font_size_override("font_size", 18)
+	
 	label.modulate = Color(0, 0, 0)
 	label.size = size
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	
 	add_child(label)
 
 func setup_image():
