@@ -1,4 +1,4 @@
-[gd_scene load_steps=26 format=3 uid="uid://dg3e0ra0x5bm7"]
+[gd_scene load_steps=29 format=3 uid="uid://dg3e0ra0x5bm7"]
 
 [ext_resource type="Script" uid="uid://cdsr50nwwc5ep" path="res://scripts/main.gd" id="1_elqb8"]
 [ext_resource type="Script" uid="uid://c74rylmp2fn4t" path="res://scripts/input_slot.gd" id="2_0bbpv"]
@@ -11,6 +11,7 @@
 [ext_resource type="Script" uid="uid://shgx88qq31fp" path="res://scripts/startupflow.gd" id="6_wp0k4"]
 [ext_resource type="FontFile" uid="uid://b2mhm7pqauqyy" path="res://assets/fonts/Sniglet-Regular.ttf" id="7_nxtc6"]
 [ext_resource type="Shader" uid="uid://dclb2ajscetcp" path="res://scripts/shader/screen.gdshader" id="9_wp0k4"]
+[ext_resource type="Texture2D" uid="uid://bp1yx4wox464r" path="res://assets/art/AI GAME supervisor photo.png" id="10_3p2gp"]
 [ext_resource type="Texture2D" uid="uid://dx6grwqxejgl6" path="res://assets/art/AI GAME COWORKER NORM (1).png" id="10_lhr70"]
 [ext_resource type="Texture2D" uid="uid://bu7g6k584qjgu" path="res://assets/art/AI GAME cursor.png" id="13_mwfav"]
 [ext_resource type="AudioStream" uid="uid://dl0014hpk8gwo" path="res://assets/sounds/time-tickingmp3.mp3" id="15_3p2gp"]
@@ -222,6 +223,10 @@ _data = {
 }
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_mwfav"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ft6cd"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_bb450"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_3p2gp"]
 
@@ -536,6 +541,14 @@ offset_right = 777.0
 offset_bottom = 157.0
 theme_override_styles/panel = SubResource("StyleBoxEmpty_mwfav")
 
+[node name="Foto" type="TextureRect" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow/SupportPrompt/Panel"]
+layout_mode = 0
+offset_left = 1052.0
+offset_top = -59.0
+offset_right = 1349.0
+offset_bottom = 291.0
+texture = ExtResource("10_3p2gp")
+
 [node name="VBoxContainer" type="VBoxContainer" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow/SupportPrompt/Panel"]
 layout_mode = 0
 offset_left = -1.0
@@ -543,9 +556,15 @@ offset_top = -127.0
 offset_right = 1392.0
 offset_bottom = 369.0
 
+[node name="VSeparator3" type="VSeparator" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow/SupportPrompt/Panel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 25)
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxEmpty_ft6cd")
+
 [node name="VSeparator2" type="VSeparator" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow/SupportPrompt/Panel/VBoxContainer"]
 custom_minimum_size = Vector2(0, 146)
 layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxEmpty_bb450")
 
 [node name="Label" type="Label" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow/SupportPrompt/Panel/VBoxContainer"]
 layout_mode = 2
@@ -555,11 +574,12 @@ theme_override_font_sizes/font_size = 23
 text = "Daily Compliance Check"
 horizontal_alignment = 1
 
-[node name="PromptText" type="Label" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow/SupportPrompt/Panel/VBoxContainer"]
+[node name="PromptText" type="RichTextLabel" parent="UIRoot/UIContainer/PCScreenArea/StartupFlow/SupportPrompt/Panel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 335)
 layout_mode = 2
-theme_override_colors/font_color = Color(0, 0, 0, 1)
-theme_override_fonts/font = ExtResource("6_bjd11")
-theme_override_font_sizes/font_size = 37
+theme_override_colors/default_color = Color(0, 0, 0, 1)
+theme_override_fonts/normal_font = ExtResource("6_bjd11")
+theme_override_font_sizes/normal_font_size = 37
 text = "Do you support AI?"
 horizontal_alignment = 1
 
@@ -592,7 +612,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("6_bjd11")
 theme_override_font_sizes/font_size = 37
-text = "No"
+text = "no"
 
 [node name="FakeCursor" type="Sprite2D" parent="UIRoot/UIContainer/PCScreenArea"]
 position = Vector2(-246, -576)
