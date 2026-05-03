@@ -30,6 +30,8 @@ enum Phase { LOGIN, LOADING, WELCOME, PROMPT }
 
 signal startup_finished(support_forced: bool)
 
+var click_player: AudioStreamPlayer
+
 var phase: Phase = Phase.LOGIN
 var employee_id: String = "007"
 var support_forced: bool = false
@@ -46,15 +48,22 @@ func _ready() -> void:
 	_set_phase(Phase.LOGIN)
 
 	login_button.pressed.connect(_on_login_pressed)
+	login_button.pressed.connect(_play_click_sound)
 
 	support_prompt.confirmed.connect(_on_support_yes)
+	support_prompt.confirmed.connect(_play_click_sound)
 	support_prompt.canceled.connect(_on_support_no)
+	support_prompt.canceled.connect(_play_click_sound)
 	support_prompt.exclusive = true
 
 	_reset_prompt_to_default()
 
 	if alastor != null:
 		alastor.visible = false
+
+	click_player = AudioStreamPlayer.new()
+	click_player.stream = preload("res://assets/sounds/mouse-click.mp3")
+	add_child(click_player)
 
 
 func _validate_nodes_or_abort() -> void:
@@ -85,6 +94,10 @@ func _validate_nodes_or_abort() -> void:
 		set_process(false)
 		set_physics_process(false)
 		set_process_input(false)
+
+
+func _play_click_sound() -> void:
+	click_player.play()
 
 
 func _set_phase(p: Phase) -> void:
