@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dfgi3ovu5j0ut"
-path="res://.godot/imported/AI GAME ai icon.png-8c311dd2e7128be1cd0f75d90848b3f3.ctex"
+uid="uid://co8wo7bax6j47"
+path="res://.godot/imported/AI GAME ai icon.png-f13dc129d1882920d432ea758552a4b2.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/AI GAME ai icon.png"
-dest_files=["res://.godot/imported/AI GAME ai icon.png-8c311dd2e7128be1cd0f75d90848b3f3.ctex"]
+source_file="res://assets/art/AI GAME ai icon.png"
+dest_files=["res://.godot/imported/AI GAME ai icon.png-f13dc129d1882920d432ea758552a4b2.ctex"]
 
 [params]
 

@@ -23,7 +23,7 @@ enum Phase { LOGIN, LOADING, WELCOME, PROMPT }
 @onready var no_button: Button = get_node("SupportPrompt/Panel/VBoxContainer/HBoxContainer/NoButton")
 
 @onready var alastor: Node2D = get_node("../../../../AlastorRoot")
-@onready var slot: Panel = get_node("../InputSlots/Slot")
+@onready var slot: TextureRect = get_node("../InputSlots/Slot")
 
 @onready var cursor_blocker: Control = get_node("../CursorBlockerArea")
 @onready var fake_cursor: Sprite2D = get_node("../FakeCursor")
@@ -35,6 +35,7 @@ enum Phase { LOGIN, LOADING, WELCOME, PROMPT }
 @onready var pc_screen: Control = get_node("../../PCScreenArea")
 @onready var ui_container: Control = get_node("../..")
 @onready var foto: Control = get_node("SupportPrompt/Panel/Foto")
+@onready var coworkers_texture: TextureRect = get_node("../../../../Coworkers")
 
 var virtual_mouse_pos: Vector2
 var free_mouse := false
@@ -47,6 +48,8 @@ var prestart_logo_layer: Control
 var prestart_logo: TextureRect
 var prestart_start_button: Button
 var prestart_credit_button: Button
+var no_glitch_player: AudioStreamPlayer
+var typing_player: AudioStreamPlayer
 
 var phase: Phase = Phase.LOGIN
 var employee_id: String = ""
@@ -54,6 +57,16 @@ var support_forced: bool = false
 var forced_yes_mode := false
 var start_message_visible := false
 var intro_message_active := false
+var skip_typewriter := false
+
+var coworkers_default_texture: Texture
+
+func _input(event):
+	if intro_message_active and event is InputEventMouseButton and event.pressed:
+		skip_typewriter = true
+		
+		click_player.pitch_scale = randf_range(0.3, 4.1)
+		click_player.play()
 
 func _ready() -> void:
 	if debug_fast_mode:
@@ -98,6 +111,24 @@ func _ready() -> void:
 		sep3.visible = false
 		sep3.modulate.a = 0.0
 
+	coworkers_default_texture = coworkers_texture.texture
+
+	typing_player = AudioStreamPlayer.new()
+	typing_player.stream = preload("res://assets/sounds/Text_Appearing_Sound.mp3")
+	typing_player.bus = "Master"
+	add_child(typing_player)
+
+	yes_button.pressed.connect(_play_click_sound)
+	no_button.pressed.connect(_play_click_sound)
+
+func flash_coworkers_caught(duration: float):
+	coworkers_texture.texture = load("res://assets/art/AI GAME COWORKER CAUGHT (1).png")
+	
+	await get_tree().create_timer(duration).timeout
+	
+	if coworkers_texture:
+		coworkers_texture.texture = coworkers_default_texture
+
 func _on_username_changed(new_text: String) -> void:
 	var upper = new_text.to_upper()
 	
@@ -105,6 +136,9 @@ func _on_username_changed(new_text: String) -> void:
 		var caret = username_input.caret_column
 		username_input.text = upper
 		username_input.caret_column = caret
+	
+	click_player.pitch_scale = randf_range(0.9, 1.1)
+	click_player.play()
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_RESIZED:
@@ -228,6 +262,9 @@ func _on_login_pressed() -> void:
 	t.tween_property(username_input, "modulate:a", 1.0, 0.15)
 
 func _on_username_submitted(text: String) -> void:
+	click_player.pitch_scale = randf_range(0.9, 1.1)
+	click_player.play()
+	
 	var input_text = text.strip_edges()
 	
 	if input_text == "":
@@ -328,17 +365,37 @@ func show_intro_message():
 
 func typewriter_intro(text: String) -> void:
 	var visible_text := ""
+	skip_typewriter = false
+
+	typing_player.pitch_scale = randf_range(0.9, 1.05)
+	typing_player.volume_db = randf_range(-4, -1)
+	typing_player.play()
 
 	for i in range(text.length()):
+		if skip_typewriter:
+			typing_player.stop()
+			prompt_text.clear()
+			prompt_text.append_text(text)
+			break
+
 		visible_text += text[i]
 		prompt_text.clear()
 		prompt_text.append_text(visible_text)
+
+		if randf() < 0.08:
+			typing_player.pitch_scale = randf_range(0.88, 1.08)
+
+		if randf() < 0.05:
+			typing_player.volume_db = randf_range(-5, -1)
+
 		await get_tree().process_frame
+
+	if typing_player.playing:
+		typing_player.stop()
 
 	yes_button.visible = true
 	yes_button.modulate.a = 0.0
 	yes_button.text = "CONTINUE"
-	yes_button.modulate.a = 1.0
 
 	var t = create_tween()
 	t.tween_property(yes_button, "modulate:a", 1.0, 0.2)
@@ -375,6 +432,7 @@ func _on_support_yes() -> void:
 			sep3.visible = false
 
 		sep.visible = true
+		comp.visible = true
 		yes_button.text = "YES"
 
 		prompt_text.add_theme_font_size_override("normal_font_size", 37)
@@ -404,13 +462,19 @@ func _on_support_no() -> void:
 
 	no_button.text = "..."
 	
+	no_glitch_player.play()
+	
+	var glitch_duration = 0.35
+	
+	flash_coworkers_caught(glitch_duration)
+	
 	await trigger_violent_glitch()
 	
 	await get_tree().create_timer(0.1).timeout
 	
 	no_button.visible = false
 	
-	await set_prompt_text_glitch("ERR0R: INV4LID RESP0NSE\ntry aga1n")
+	await set_prompt_text_glitch("ERR0R: INV4LID RESP0NS3 - trY aGa1n")
 
 func show_start_message():
 	await set_prompt_text_glitch("PROCEED AS INSTRUCTED")
