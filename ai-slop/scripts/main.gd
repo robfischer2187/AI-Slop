@@ -26,6 +26,8 @@ var positive_player: AudioStreamPlayer2D
 var caught_player: AudioStreamPlayer2D
 var scream_player: AudioStreamPlayer2D
 var glitch_player: AudioStreamPlayer2D
+var office_player: AudioStreamPlayer2D
+var office_r_player: AudioStreamPlayer2D
 
 var strikes: int = 0
 var task_index: int = 0
@@ -118,10 +120,38 @@ func _ready() -> void:
 	glitch_player = AudioStreamPlayer2D.new()
 	$AudioManager.add_child(glitch_player)
 
+	office_player = AudioStreamPlayer2D.new()
+	office_player.stream = preload("res://assets/sounds/office.mp3")
+	office_player.volume_db = 5
+	office_player.pitch_scale = 0.9
+	office_player.bus = "Master"
+	$AudioManager.add_child(office_player)
+
+	office_r_player = AudioStreamPlayer2D.new()
+	office_r_player.stream = preload("res://assets/sounds/office_r.mp3")
+	office_r_player.volume_db = 2.5
+	office_r_player.pitch_scale = 0.1
+	office_r_player.bus = "Master"
+	$AudioManager.add_child(office_r_player)
+
+	office_player.finished.connect(_on_office_finished)
+	office_r_player.finished.connect(_on_office_r_finished)
+
+func _on_office_finished():
+	office_player.play()
+
+func _on_office_r_finished():
+	office_r_player.play()
+
 func _on_startup_finished(_support_forced: bool) -> void:
 	set_process(true)
 	game_running = true
 	start_game()
+	await get_tree().create_timer(0.2).timeout
+	office_player.play()
+
+	await get_tree().create_timer(0.7).timeout
+	office_r_player.play()
 	horror_overlay.visible = true
 	coworkers_default_texture = coworkers_texture.texture
 	init_virtual_mouse()
@@ -173,6 +203,12 @@ func _process(delta):
 	screen_mat.set_shader_parameter("glitch_intensity", max(base_glitch + pulse, 0.0))
 	
 	trigger_black_flicker()
+	
+	if not meltdown_active:
+		if randf() < 0.01:
+			office_player.pitch_scale = randf_range(0.85, 0.95)
+		if randf() < 0.01:
+			office_r_player.pitch_scale = randf_range(0.8, 0.9)
 
 func init_virtual_mouse():
 	var rect = cursor_blocker.get_global_rect()
