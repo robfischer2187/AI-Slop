@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dt7tatss04b1w"
-path="res://.godot/imported/AI GAME supervisor photo.png-bbf7144aeaf6e20f97a98fddbc934061.ctex"
+uid="uid://4xbvwh4bmksp"
+path="res://.godot/imported/AI GAME menu logo.png-e096f739975ec06e136bafdc7f1505ce.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/art/AI GAME supervisor photo.png"
-dest_files=["res://.godot/imported/AI GAME supervisor photo.png-bbf7144aeaf6e20f97a98fddbc934061.ctex"]
+source_file="res://assets/art/AI GAME menu logo.png"
+dest_files=["res://.godot/imported/AI GAME menu logo.png-e096f739975ec06e136bafdc7f1505ce.ctex"]
 
 [params]
 
