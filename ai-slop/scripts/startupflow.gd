@@ -33,6 +33,7 @@ enum Phase { LOGIN, LOADING, WELCOME, PROMPT }
 @onready var screen_mat: ShaderMaterial = get_node("../ScreenOverlay/EffectRect").material
 @onready var glitch_overlay: ColorRect = get_node("../../PCScreenArea/GlitchOverlay")
 @onready var pc_screen: Control = get_node("../../PCScreenArea")
+@onready var ui_container: Control = get_node("../..")
 @onready var foto: Control = get_node("SupportPrompt/Panel/Foto")
 
 var virtual_mouse_pos: Vector2
@@ -41,7 +42,11 @@ var free_mouse := false
 signal startup_finished(support_forced: bool)
 
 var click_player: AudioStreamPlayer
-var no_glitch_player: AudioStreamPlayer
+var prestart_overlay: Control
+var prestart_logo_layer: Control
+var prestart_logo: TextureRect
+var prestart_start_button: Button
+var prestart_credit_button: Button
 
 var phase: Phase = Phase.LOGIN
 var employee_id: String = ""
@@ -56,6 +61,7 @@ func _ready() -> void:
 		welcome_hold_seconds = 0.1
 
 	_set_phase(Phase.LOGIN)
+	login_panel.visible = false
 
 	login_button.pressed.connect(_on_login_pressed)
 	login_button.pressed.connect(_play_click_sound)
@@ -82,9 +88,7 @@ func _ready() -> void:
 
 	username_input.text_changed.connect(_on_username_changed)
 
-	no_glitch_player = AudioStreamPlayer.new()
-	no_glitch_player.stream = preload("res://assets/sounds/no_glitch.mp3")
-	add_child(no_glitch_player)
+	call_deferred("_create_prestart_overlay")
 
 	if foto != null:
 		foto.visible = false
@@ -101,6 +105,105 @@ func _on_username_changed(new_text: String) -> void:
 		var caret = username_input.caret_column
 		username_input.text = upper
 		username_input.caret_column = caret
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_RESIZED:
+		_layout_prestart_overlay()
+
+func _create_prestart_overlay() -> void:
+	if prestart_overlay != null:
+		return
+	if prestart_logo_layer != null:
+		return
+
+	prestart_overlay = Control.new()
+	prestart_overlay.name = "PreStartOverlay"
+	prestart_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	prestart_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	prestart_overlay.z_index = 500
+	add_child(prestart_overlay)
+
+	prestart_logo_layer = Control.new()
+	prestart_logo_layer.name = "PreStartLogoLayer"
+	prestart_logo_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
+	prestart_logo_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	prestart_logo_layer.z_index = 450
+	ui_container.add_child(prestart_logo_layer)
+
+	prestart_logo = TextureRect.new()
+	prestart_logo.name = "MenuLogo"
+	prestart_logo.texture = load("res://assets/art/AI GAME menu logo.png")
+	prestart_logo.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	prestart_logo.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	prestart_logo.custom_minimum_size = Vector2(1820, 900)
+	prestart_logo.size = Vector2(1820, 900)
+	prestart_logo.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	prestart_logo_layer.add_child(prestart_logo)
+
+	prestart_start_button = Button.new()
+	prestart_start_button.name = "StartButton"
+	prestart_start_button.text = "START"
+	prestart_start_button.custom_minimum_size = Vector2(160, 40)
+	prestart_start_button.set_anchors_preset(Control.PRESET_CENTER)
+	prestart_start_button.offset_left = -80.0
+	prestart_start_button.offset_top = -28.0
+	prestart_start_button.offset_right = 80.0
+	prestart_start_button.offset_bottom = 12.0
+	prestart_start_button.add_theme_color_override("font_color", login_button.get_theme_color("font_color"))
+	prestart_start_button.add_theme_font_override("font", login_button.get_theme_font("font"))
+	prestart_start_button.add_theme_font_size_override("font_size", login_button.get_theme_font_size("font_size"))
+	prestart_start_button.add_theme_color_override("font_hover_color", Color(1, 1, 1, 1))
+	prestart_start_button.add_theme_color_override("font_pressed_color", login_button.get_theme_color("font_color"))
+	prestart_start_button.mouse_filter = Control.MOUSE_FILTER_STOP
+	prestart_start_button.pressed.connect(_on_prestart_start_pressed)
+	prestart_start_button.pressed.connect(_play_click_sound)
+	prestart_overlay.add_child(prestart_start_button)
+
+	prestart_credit_button = Button.new()
+	prestart_credit_button.name = "CreditButton"
+	prestart_credit_button.text = "CREDIT"
+	prestart_credit_button.custom_minimum_size = Vector2(160, 40)
+	prestart_credit_button.set_anchors_preset(Control.PRESET_CENTER)
+	prestart_credit_button.offset_left = -80.0
+	prestart_credit_button.offset_top = 42.0
+	prestart_credit_button.offset_right = 80.0
+	prestart_credit_button.offset_bottom = 82.0
+	prestart_credit_button.add_theme_color_override("font_color", login_button.get_theme_color("font_color"))
+	prestart_credit_button.add_theme_font_override("font", login_button.get_theme_font("font"))
+	prestart_credit_button.add_theme_font_size_override("font_size", login_button.get_theme_font_size("font_size"))
+	prestart_credit_button.add_theme_color_override("font_hover_color", Color(1, 1, 1, 1))
+	prestart_credit_button.add_theme_color_override("font_pressed_color", login_button.get_theme_color("font_color"))
+	prestart_credit_button.mouse_filter = Control.MOUSE_FILTER_STOP
+	prestart_overlay.add_child(prestart_credit_button)
+
+	_layout_prestart_overlay()
+
+func _layout_prestart_overlay() -> void:
+	if prestart_overlay == null:
+		return
+
+	var center_x = pc_screen.position.x + (pc_screen.size.x * 0.5)
+	var logo_top = pc_screen.position.y - (prestart_logo.size.y * 0.5) - 40.0
+	if prestart_logo != null:
+		prestart_logo.position = Vector2(
+			center_x - (prestart_logo.size.x * 0.5),
+			logo_top
+		)
+
+func _on_prestart_start_pressed() -> void:
+	if prestart_overlay != null:
+		prestart_overlay.queue_free()
+		prestart_overlay = null
+	if prestart_logo_layer != null:
+		prestart_logo_layer.queue_free()
+		prestart_logo_layer = null
+
+	_set_phase(Phase.LOGIN)
+	login_panel.visible = true
+	login_button.disabled = false
+	login_button.visible = true
+	username_input.visible = false
+	username_input.editable = true
 
 func _process(_delta):
 	update_virtual_mouse()
@@ -300,8 +403,6 @@ func _on_support_no() -> void:
 	forced_yes_mode = true
 
 	no_button.text = "..."
-	
-	no_glitch_player.play()
 	
 	await trigger_violent_glitch()
 	
