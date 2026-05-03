@@ -29,6 +29,9 @@ var scream_player: AudioStreamPlayer2D
 var glitch_player: AudioStreamPlayer2D
 var office_player: AudioStreamPlayer2D
 var office_r_player: AudioStreamPlayer2D
+var good_ending: AudioStreamPlayer2D
+var bad_ending: AudioStreamPlayer2D
+
 
 var strikes: int = 0
 var task_index: int = 0
@@ -167,6 +170,14 @@ func _ready() -> void:
 	office_r_player.pitch_scale = 0.1
 	office_r_player.bus = "Master"
 	$AudioManager.add_child(office_r_player)
+
+	good_ending = AudioStreamPlayer2D.new()
+	good_ending.stream = preload("res://assets/sounds/happy-ending.mp3")
+	$AudioManager.add_child(good_ending)
+
+	bad_ending = AudioStreamPlayer2D.new()
+	bad_ending.stream = preload("res://assets/sounds/bad-ending.mp3")
+	$AudioManager.add_child(bad_ending)
 
 	office_player.finished.connect(_on_office_finished)
 	office_r_player.finished.connect(_on_office_r_finished)
@@ -848,13 +859,15 @@ func alastor_micro_glitch():
 	alastor_glitching_visual = false
 
 func check_end_conditions():
-	if sabotage_score >= 24:
+	if sabotage_score >= 2:
 		trigger_good_ending()
-	elif ai_score >= 24:
+	elif ai_score >= 2:
 		trigger_bad_ending()
 
 func trigger_good_ending() -> void:
+	good_ending.play()
 	game_running = false
+	show_dialogue("You Win. GOOD JOB.")
 	print("AI COMPANY CLOSES!")
 
 func trigger_neutral_ending() -> void:
@@ -863,7 +876,9 @@ func trigger_neutral_ending() -> void:
 	print("SCANDAL AT SMAILE!")
 
 func trigger_bad_ending() -> void:
+	bad_ending.play();
 	game_running = false
+	show_dialogue("GAME OVER. YOU LOSE.")
 	print("AI CREATURE ON THE LOOSE!")
 
 func start_neutral_meltdown():
