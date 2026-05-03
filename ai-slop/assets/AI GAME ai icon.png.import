@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dahx4egk0qt56"
-path="res://.godot/imported/AI_GAME_newspaper_GOOD.png-391f9a130b188a2313059456a556f3cc.ctex"
+uid="uid://dfgi3ovu5j0ut"
+path="res://.godot/imported/AI GAME ai icon.png-8c311dd2e7128be1cd0f75d90848b3f3.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/art/AI_GAME_newspaper_GOOD.png"
-dest_files=["res://.godot/imported/AI_GAME_newspaper_GOOD.png-391f9a130b188a2313059456a556f3cc.ctex"]
+source_file="res://assets/AI GAME ai icon.png"
+dest_files=["res://.godot/imported/AI GAME ai icon.png-8c311dd2e7128be1cd0f75d90848b3f3.ctex"]
 
 [params]
 
