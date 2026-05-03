@@ -40,6 +40,18 @@ tracks/1/keys = {
 "update": 0,
 "values": [0.0]
 }
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath(".:visible")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
 
 [sub_resource type="Animation" id="Animation_mwfav"]
 resource_name = "wait"
@@ -66,6 +78,18 @@ tracks/1/keys = {
 "transitions": PackedFloat32Array(1),
 "update": 0,
 "values": [0.0]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath(".:visible")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
 }
 
 [sub_resource type="Animation" id="Animation_0bbpv"]
@@ -95,6 +119,18 @@ tracks/1/keys = {
 "update": 0,
 "values": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 }
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath(".:visible")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.14),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [false, true]
+}
 
 [sub_resource type="Animation" id="Animation_qmy6f"]
 resource_name = "walk_left"
@@ -123,6 +159,18 @@ tracks/1/keys = {
 "update": 0,
 "values": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 }
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath(".:visible")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
 
 [sub_resource type="Animation" id="Animation_vcsgt"]
 resource_name = "watch"
@@ -149,6 +197,18 @@ tracks/1/keys = {
 "transitions": PackedFloat32Array(1),
 "update": 0,
 "values": [0.0]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath(".:visible")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
 }
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_c01mt"]
@@ -204,6 +264,7 @@ texture = ExtResource("10_lhr70")
 [node name="AlastorRoot" type="Node2D" parent="."]
 
 [node name="AlastorSlopp" type="CharacterBody2D" parent="AlastorRoot"]
+visible = false
 position = Vector2(-90, 132)
 
 [node name="Sprite2D" type="Sprite2D" parent="AlastorRoot/AlastorSlopp"]
@@ -457,9 +518,9 @@ color = Color(1, 1, 1, 0)
 [node name="Dialogue" type="CanvasLayer" parent="UIRoot/UIContainer/PCScreenArea"]
 
 [node name="DialogueLabel" type="Label" parent="UIRoot/UIContainer/PCScreenArea/Dialogue"]
-offset_top = 992.0
+offset_top = 54.0
 offset_right = 1920.0
-offset_bottom = 1052.0
+offset_bottom = 114.0
 theme_override_colors/font_color = Color(0.9058309, 1, 0.9063318, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 10
