@@ -19,6 +19,7 @@ extends Node2D
 @onready var progress_label: Label = $UIRoot/UIContainer/PCScreenArea/ProgressLabel
 @onready var audio: AudioStreamPlayer2D = $AudioManager/Music
 var mistake_player: AudioStreamPlayer2D
+var positive_player: AudioStreamPlayer2D
 
 var strikes: int = 0
 var task_index: int = 0
@@ -89,6 +90,11 @@ func _ready() -> void:
 	mistake_player = AudioStreamPlayer2D.new()
 	mistake_player.stream = preload("res://assets/sounds/mistake-sound.mp3")
 	$AudioManager.add_child(mistake_player)
+
+	# create a one-off AudioStreamPlayer2D for positive feedback
+	positive_player = AudioStreamPlayer2D.new()
+	positive_player.stream = preload("res://assets/sounds/positive-beep.mp3")
+	$AudioManager.add_child(positive_player)
 
 func _on_startup_finished(_support_forced: bool) -> void:
 	set_process(true)
@@ -204,6 +210,8 @@ func submit_input(input_name: String) -> void:
 	
 	if input_name == current_task["correct"]:
 		ai_score += 1
+		if positive_player:
+			positive_player.play()
 		suspicion = max(suspicion - 0.1, 0)
 		flash_feedback(Color(0, 1, 0))
 		punch_slot()
