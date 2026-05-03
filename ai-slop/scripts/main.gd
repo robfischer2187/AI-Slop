@@ -21,6 +21,7 @@ extends Node2D
 @onready var mistakes_label: Label = $UIRoot/UIContainer/PCScreenArea/MistakesLabel
 @onready var progress_label: Label = $UIRoot/UIContainer/PCScreenArea/ProgressLabel
 @onready var audio: AudioStreamPlayer2D = $AudioManager/Music
+var health_sprites: Array[TextureRect] = []
 var mistake_player: AudioStreamPlayer2D
 var positive_player: AudioStreamPlayer2D
 var caught_player: AudioStreamPlayer2D
@@ -73,6 +74,12 @@ var next_glitch_time: float = 0.0
 
 var meltdown_active := false
 
+const HEALTH_TEXTURES := [
+	"res://assets/art/AI_GAME HEALTH 3.png",
+	"res://assets/art/AI_GAME HEALTH 2.png",
+	"res://assets/art/AI_GAME HEALTH 1.png",
+]
+
 var task_pool: Array = [
 	[
 		{
@@ -97,6 +104,7 @@ var task_pool: Array = [
 ]
 
 func _ready() -> void:
+	_setup_health_sprites()
 	var startup_flow: Node = $UIRoot/UIContainer/PCScreenArea/StartupFlow
 	startup_flow.startup_finished.connect(_on_startup_finished)
 	set_process(false)
@@ -154,6 +162,7 @@ func _on_startup_finished(_support_forced: bool) -> void:
 	office_r_player.play()
 	horror_overlay.visible = true
 	coworkers_default_texture = coworkers_texture.texture
+	_refresh_health_sprites()
 	init_virtual_mouse()
 	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
 	start_alastor_loop()
@@ -234,7 +243,70 @@ func start_game() -> void:
 	suspicion = 0.0
 	game_running = true
 	audio.play();
+	_refresh_health_sprites()
 	load_task()
+
+
+func _setup_health_sprites() -> void:
+	if not health_sprites.is_empty():
+		return
+
+	for i in range(HEALTH_TEXTURES.size()):
+		var health_sprite := TextureRect.new()
+		health_sprite.texture = load(HEALTH_TEXTURES[i])
+		health_sprite.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		health_sprite.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		health_sprite.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		health_sprite.custom_minimum_size = Vector2(140, 140)
+		health_sprite.size = Vector2(140, 140)
+		health_sprite.z_index = 200
+		pc_screen.get_parent().add_child(health_sprite)
+		health_sprites.append(health_sprite)
+
+	_update_health_sprite_layout()
+
+
+func _update_health_sprite_layout() -> void:
+	if health_sprites.is_empty():
+		return
+
+	var screen_rect := pc_screen.get_global_rect()
+	var start_x := screen_rect.end.x + 10.0
+	var start_y := screen_rect.position.y + 24.0
+	var gap_y := 150.0
+
+	for i in range(health_sprites.size()):
+		var sprite := health_sprites[i]
+		sprite.global_position = Vector2(start_x, start_y + (i * gap_y))
+
+
+func _refresh_health_sprites() -> void:
+	if health_sprites.is_empty():
+		return
+
+	for i in range(health_sprites.size()):
+		var sprite := health_sprites[i]
+		var should_drop := i < strikes
+		if should_drop:
+			sprite.visible = false
+			sprite.global_position = Vector2(pc_screen.get_global_rect().end.x + 10.0, pc_screen.get_global_rect().position.y + 24.0 + (i * 150) + 120)
+		else:
+			sprite.visible = true
+			sprite.modulate = Color(1, 1, 1, 1)
+
+	_update_health_sprite_layout()
+
+
+func _animate_health_drop(index: int) -> void:
+	if index < 0 or index >= health_sprites.size():
+		return
+
+	var sprite := health_sprites[index]
+	sprite.visible = true
+	var tween := create_tween()
+	tween.tween_property(sprite, "position:y", sprite.position.y + 120.0, 0.35)
+	tween.tween_property(sprite, "modulate:a", 0.0, 0.15)
+	tween.tween_callback(func(): sprite.visible = false)
 
 func get_current_phase() -> int:
 	return clamp(int(task_index / 6.0), 0, task_pool.size() - 1)
@@ -659,6 +731,8 @@ func get_caught_by_alastor() -> void:
 	
 	strikes += 1
 	got_caught_this_watch = true
+	_animate_health_drop(strikes - 1)
+	_refresh_health_sprites()
 	
 	
 	coworkers_texture.texture = load("res://assets/art/AI GAME COWORKER CAUGHT (1).png")
