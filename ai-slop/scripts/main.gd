@@ -17,6 +17,7 @@ extends Node2D
 @export var draggable_scene: PackedScene
 @onready var mistakes_label: Label = $UIRoot/UIContainer/PCScreenArea/MistakesLabel
 @onready var progress_label: Label = $UIRoot/UIContainer/PCScreenArea/ProgressLabel
+@onready var audio: AudioStreamPlayer2D = $AudioManager/Music
 
 var strikes: int = 0
 var task_index: int = 0
@@ -156,6 +157,7 @@ func start_game() -> void:
 	ai_score = 0
 	suspicion = 0.0
 	game_running = true
+	audio.play();
 	load_task()
 
 func get_current_phase() -> int:
