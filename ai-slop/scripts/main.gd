@@ -859,9 +859,9 @@ func alastor_micro_glitch():
 	alastor_glitching_visual = false
 
 func check_end_conditions():
-	if sabotage_score >= 2:
+	if sabotage_score >= 24:
 		trigger_good_ending()
-	elif ai_score >= 2:
+	elif ai_score >= 24:
 		trigger_bad_ending()
 
 func trigger_good_ending() -> void:
