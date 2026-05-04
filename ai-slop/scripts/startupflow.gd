@@ -50,6 +50,9 @@ var prestart_start_button: Button
 var prestart_credit_button: Button
 var no_glitch_player: AudioStreamPlayer
 var typing_player: AudioStreamPlayer
+var glitch_player: AudioStreamPlayer
+var title_music: AudioStreamPlayer
+var breath_player: AudioStreamPlayer
 
 var phase: Phase = Phase.LOGIN
 var employee_id: String = ""
@@ -58,8 +61,10 @@ var forced_yes_mode := false
 var start_message_visible := false
 var intro_message_active := false
 var skip_typewriter := false
+var original_employee_id: String = ""
 
 var coworkers_default_texture: Texture
+var btn_font = load("res://assets/fonts/IBMPlexMono-SemiBold.ttf")
 
 func _input(event):
 	if intro_message_active and event is InputEventMouseButton and event.pressed:
@@ -69,6 +74,7 @@ func _input(event):
 		click_player.play()
 
 func _ready() -> void:
+	_reset_visual_state()
 	if debug_fast_mode:
 		loading_seconds = 0.3
 		welcome_hold_seconds = 0.1
@@ -121,6 +127,52 @@ func _ready() -> void:
 	yes_button.pressed.connect(_play_click_sound)
 	no_button.pressed.connect(_play_click_sound)
 
+	glitch_player = AudioStreamPlayer.new()
+	add_child(glitch_player)
+	
+	no_glitch_player = AudioStreamPlayer.new()
+	no_glitch_player.stream = preload("res://assets/sounds/glitch.mp3")
+	no_glitch_player.pitch_scale = randf_range(0.6, 1.2)
+	no_glitch_player.volume_db = 6
+	add_child(no_glitch_player)
+
+	title_music = AudioStreamPlayer.new()
+	title_music.stream = preload("res://assets/sounds/title_loop.mp3")
+	title_music.bus = "Master"
+	title_music.volume_db = -4
+	title_music.autoplay = false
+	title_music.stream.loop = true
+	add_child(title_music)
+
+	title_music.play()
+
+	breath_player = AudioStreamPlayer.new()
+	breath_player.stream = preload("res://assets/sounds/heavy_breath.mp3")
+	breath_player.bus = "Master"
+	breath_player.volume_db = -10
+	add_child(breath_player)
+	call_deferred("_play_intro_breath")
+
+func _play_intro_breath():
+	await get_tree().create_timer(0.5).timeout
+	
+	breath_player.pitch_scale = randf_range(0.9, 1.05)
+	breath_player.volume_db = -10
+	breath_player.play()
+
+func _play_glitch_sound():
+	var sounds = [
+		preload("res://assets/sounds/glitch.mp3"),
+		preload("res://assets/sounds/glitch2.mp3"),
+		preload("res://assets/sounds/glitch3.mp3")
+	]
+	
+	glitch_player.stop()
+	glitch_player.stream = sounds.pick_random()
+	glitch_player.pitch_scale = randf_range(1.7, 2.3)
+	glitch_player.volume_db = randf_range(3, 8)
+	glitch_player.play()
+
 func flash_coworkers_caught(duration: float):
 	coworkers_texture.texture = load("res://assets/art/AI GAME COWORKER CAUGHT (1).png")
 	
@@ -147,22 +199,22 @@ func _notification(what: int) -> void:
 func _create_prestart_overlay() -> void:
 	if prestart_overlay != null:
 		return
-	if prestart_logo_layer != null:
-		return
+
+	var menu_layer := CanvasLayer.new()
+	menu_layer.layer = 100
+	add_child(menu_layer)
 
 	prestart_overlay = Control.new()
 	prestart_overlay.name = "PreStartOverlay"
 	prestart_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
-	prestart_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
-	prestart_overlay.z_index = 500
-	add_child(prestart_overlay)
+	prestart_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	menu_layer.add_child(prestart_overlay)
 
 	prestart_logo_layer = Control.new()
 	prestart_logo_layer.name = "PreStartLogoLayer"
 	prestart_logo_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
 	prestart_logo_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	prestart_logo_layer.z_index = 450
-	ui_container.add_child(prestart_logo_layer)
+	menu_layer.add_child(prestart_logo_layer)
 
 	prestart_logo = TextureRect.new()
 	prestart_logo.name = "MenuLogo"
@@ -177,38 +229,33 @@ func _create_prestart_overlay() -> void:
 	prestart_start_button = Button.new()
 	prestart_start_button.name = "StartButton"
 	prestart_start_button.text = "START"
-	prestart_start_button.custom_minimum_size = Vector2(160, 40)
-	prestart_start_button.set_anchors_preset(Control.PRESET_CENTER)
-	prestart_start_button.offset_left = -80.0
-	prestart_start_button.offset_top = -28.0
-	prestart_start_button.offset_right = 80.0
-	prestart_start_button.offset_bottom = 12.0
+	prestart_start_button.custom_minimum_size = Vector2(320, 90)
 	prestart_start_button.add_theme_color_override("font_color", login_button.get_theme_color("font_color"))
-	prestart_start_button.add_theme_font_override("font", login_button.get_theme_font("font"))
-	prestart_start_button.add_theme_font_size_override("font_size", login_button.get_theme_font_size("font_size"))
+	prestart_start_button.add_theme_font_override("font", btn_font)
+	prestart_start_button.add_theme_font_size_override("font_size", 37)
 	prestart_start_button.add_theme_color_override("font_hover_color", Color(1, 1, 1, 1))
 	prestart_start_button.add_theme_color_override("font_pressed_color", login_button.get_theme_color("font_color"))
 	prestart_start_button.mouse_filter = Control.MOUSE_FILTER_STOP
 	prestart_start_button.pressed.connect(_on_prestart_start_pressed)
 	prestart_start_button.pressed.connect(_play_click_sound)
-	prestart_overlay.add_child(prestart_start_button)
+	pc_screen.add_child(prestart_start_button)
 
 	prestart_credit_button = Button.new()
 	prestart_credit_button.name = "CreditButton"
 	prestart_credit_button.text = "CREDIT"
-	prestart_credit_button.custom_minimum_size = Vector2(160, 40)
-	prestart_credit_button.set_anchors_preset(Control.PRESET_CENTER)
-	prestart_credit_button.offset_left = -80.0
-	prestart_credit_button.offset_top = 42.0
-	prestart_credit_button.offset_right = 80.0
-	prestart_credit_button.offset_bottom = 82.0
+	prestart_credit_button.custom_minimum_size = Vector2(320, 90)
 	prestart_credit_button.add_theme_color_override("font_color", login_button.get_theme_color("font_color"))
-	prestart_credit_button.add_theme_font_override("font", login_button.get_theme_font("font"))
-	prestart_credit_button.add_theme_font_size_override("font_size", login_button.get_theme_font_size("font_size"))
+	prestart_credit_button.add_theme_font_override("font", btn_font)
+	prestart_credit_button.add_theme_font_size_override("font_size", 37)
 	prestart_credit_button.add_theme_color_override("font_hover_color", Color(1, 1, 1, 1))
 	prestart_credit_button.add_theme_color_override("font_pressed_color", login_button.get_theme_color("font_color"))
 	prestart_credit_button.mouse_filter = Control.MOUSE_FILTER_STOP
-	prestart_overlay.add_child(prestart_credit_button)
+	pc_screen.add_child(prestart_credit_button)
+	prestart_credit_button.pressed.connect(_on_credit_pressed)
+	prestart_credit_button.pressed.connect(_play_click_sound)
+
+	if fake_cursor != null:
+		fake_cursor.z_index = 999
 
 	_layout_prestart_overlay()
 
@@ -216,21 +263,73 @@ func _layout_prestart_overlay() -> void:
 	if prestart_overlay == null:
 		return
 
-	var center_x = pc_screen.position.x + (pc_screen.size.x * 0.5)
-	var logo_top = pc_screen.position.y - (prestart_logo.size.y * 0.5) - 40.0
+	var screen_rect = pc_screen.get_global_rect()
+	var center = screen_rect.position + screen_rect.size * 0.5
+
 	if prestart_logo != null:
 		prestart_logo.position = Vector2(
-			center_x - (prestart_logo.size.x * 0.5),
-			logo_top
+			center.x - (prestart_logo.size.x * 0.5),
+			screen_rect.position.y - (prestart_logo.size.y * 0.5) - 40.0
 		)
 
+	var spacing := 120.0
+
+	if prestart_start_button != null:
+		prestart_start_button.global_position = Vector2(
+			center.x - (prestart_start_button.size.x * 0.5),
+			center.y - spacing * 0.5
+		)
+
+	if prestart_credit_button != null:
+		prestart_credit_button.global_position = Vector2(
+			center.x - (prestart_credit_button.size.x * 0.5),
+			center.y + spacing * 0.5
+		)
+
+func _menu_start_glitch():
+	var mat := screen_mat
+	
+	var duration = 0.4
+	var elapsed = 0.0
+	
+	while elapsed < duration:
+		elapsed += 0.01
+		await get_tree().create_timer(0.01).timeout
+		
+		mat.set_shader_parameter("glitch_intensity", randf_range(1.2, 2.2))
+		mat.set_shader_parameter("glitch_time", Time.get_ticks_msec() * randf_range(0.004, 0.02))
+		
+		glitch_overlay.modulate.a = randf_range(0.4, 1.0)
+		
+		if randf() < 0.4:
+			_play_glitch_sound()
+	
+	glitch_overlay.modulate.a = 0.0
+	
+	mat.set_shader_parameter("glitch_intensity", 0.01)
+
 func _on_prestart_start_pressed() -> void:
+	await _menu_start_glitch()
+
+	if title_music:
+		title_music.stop()
+	
 	if prestart_overlay != null:
-		prestart_overlay.queue_free()
+		var layer = prestart_overlay.get_parent()
+		layer.queue_free()
 		prestart_overlay = null
-	if prestart_logo_layer != null:
-		prestart_logo_layer.queue_free()
 		prestart_logo_layer = null
+
+	if prestart_start_button != null:
+		prestart_start_button.queue_free()
+		prestart_start_button = null
+
+	if prestart_credit_button != null:
+		prestart_credit_button.queue_free()
+		prestart_credit_button = null
+
+	if fake_cursor != null:
+		fake_cursor.z_index = 100
 
 	_set_phase(Phase.LOGIN)
 	login_panel.visible = true
@@ -239,9 +338,48 @@ func _on_prestart_start_pressed() -> void:
 	username_input.visible = false
 	username_input.editable = true
 
+func _on_credit_pressed():
+	var main = get_tree().current_scene
+	if main.has_method("show_credits"):
+		await main.show_credits()
+
 func _process(_delta):
+	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
 	update_virtual_mouse()
-	fake_cursor.global_position = virtual_mouse_pos
+	
+	if fake_cursor != null:
+		fake_cursor.global_position = virtual_mouse_pos
+	
+	if prestart_logo != null and randf() < 0.01:
+		_glitch_logo()
+
+func _glitch_logo():
+	if prestart_logo == null:
+		return
+	
+	var original_pos = prestart_logo.position
+	var original_rot = prestart_logo.rotation_degrees
+	
+	for i in range(randi_range(2, 5)):
+		if not is_instance_valid(prestart_logo):
+			return
+		
+		prestart_logo.position = original_pos + Vector2(
+			randf_range(-8, 8),
+			randf_range(-6, 6)
+		)
+		
+		prestart_logo.rotation_degrees = original_rot + randf_range(-3, 3)
+		prestart_logo.visible = randf() > 0.3
+		
+		await get_tree().create_timer(randf_range(0.01, 0.03)).timeout
+	
+	if not is_instance_valid(prestart_logo):
+		return
+	
+	prestart_logo.position = original_pos
+	prestart_logo.rotation_degrees = original_rot
+	prestart_logo.visible = true
 
 func _play_click_sound() -> void:
 	click_player.play()
@@ -269,6 +407,8 @@ func _on_username_submitted(text: String) -> void:
 	
 	if input_text == "":
 		input_text = "G4M3J4M"
+	
+	original_employee_id = input_text.to_upper()
 	
 	employee_id = input_text.to_upper()
 	employee_id = employee_id.substr(0, 10)
@@ -316,7 +456,15 @@ func _play_loading() -> void:
 
 func _show_welcome_then_prompt() -> void:
 	_set_phase(Phase.WELCOME)
-	welcome_label.text = "WELCOME BACK, %s\n BE PRODUCTIVE." % employee_id
+	var data = _get_special_welcome_text(original_employee_id)
+
+	if data["delay"] > 0.0:
+		await get_tree().create_timer(data["delay"]).timeout
+
+	if data["glitch"]:
+		await _play_al_name_glitch()
+	else:
+		welcome_label.text = data["text"]
 
 	await get_tree().create_timer(welcome_hold_seconds).timeout
 
@@ -590,3 +738,80 @@ func shrink_prompt_text():
 	t.set_trans(Tween.TRANS_SINE)
 	t.set_ease(Tween.EASE_IN_OUT)
 	t.tween_property(prompt_text, "custom_minimum_size:y", 40.0, 0.25)
+
+func _get_special_welcome_text(id: String) -> Dictionary:
+	var user_name = id.strip_edges().to_upper()
+
+	if user_name == "' OR 1=1 --":
+		return {
+			"text": "WELCOME BACK\nDID YOU THINK THAT'D WORK?",
+			"delay": 0.0,
+			"glitch": false
+		}
+
+	if user_name == "AL" or user_name == "ALASTOR":
+		return {
+			"text": "",
+			"delay": 0.0,
+			"glitch": true
+		}
+
+	if user_name == "SEASON":
+		return {"text": "WELCOME BACK, %s\nYOU ARE RESPONSIBLE FOR THIS." % employee_id, "delay": 0.0, "glitch": false}
+
+	if user_name == "AMANDA" or user_name == "MANDY":
+		return {"text": "WELCOME BACK, %s\nTHANK YOU FOR MY FACE." % employee_id, "delay": 0.0, "glitch": false}
+
+	if user_name == "ROBIN" or user_name == "ROB":
+		return {"text": "WELCOME BACK, %s\nYOU KNOW HOW THIS ENDS." % employee_id, "delay": 0.0, "glitch": false}
+
+	if user_name == "ADMIN":
+		return {"text": "WELCOME BACK, %s\nOVERRIDE ACCEPTED." % employee_id, "delay": 0.0, "glitch": false}
+
+	if user_name == "ROOT":
+		return {"text": "WELCOME BACK, %s\nFULL ACCESS GRANTED." % employee_id, "delay": 0.0, "glitch": false}
+
+	if user_name == "SMAILE" or user_name == "SMAILEY":
+		return {"text": "WELCOME BACK, %s\nYOU ARE THE PRODUCT." % employee_id, "delay": 0.0, "glitch": false}
+
+	if user_name == "GARRY":
+		return {"text": "WELCOME BACK, %s\nAH. YOU REMEMBER YOUR NAME." % employee_id, "delay": 1.0, "glitch": false}
+
+	return {
+		"text": "WELCOME BACK, %s\n BE PRODUCTIVE." % employee_id,
+		"delay": 0.0,
+		"glitch": false
+	}
+
+func _play_al_name_glitch() -> void:
+	var messages = [
+		"YOU'RE NOT HIM.",
+		"THAT NAME IS NOT YOURS.",
+		"STOP.",
+		"LOOK AWAY.",
+		"I SEE YOU.",
+		"NO."
+	]
+
+	var duration = 1.4
+	var elapsed = 0.0
+
+	while elapsed < duration:
+		elapsed += 0.06
+		await get_tree().create_timer(0.06).timeout
+
+		var msg = messages.pick_random()
+		welcome_label.text = "WELCOME BACK, %s\n%s" % [employee_id, msg]
+
+		if randf() < 0.3:
+			welcome_label.text = "WELCOME BACK, %s\n%s" % [employee_id, ["#", "%", "?", "ERROR"].pick_random()]
+
+	welcome_label.text = "WELCOME BACK, %s\nYOU'RE NOT HIM." % employee_id
+
+func _reset_visual_state():
+	if screen_mat:
+		screen_mat.set_shader_parameter("glitch_intensity", 0.0)
+		screen_mat.set_shader_parameter("glitch_time", 0.0)
+
+	if glitch_overlay:
+		glitch_overlay.modulate.a = 0.0

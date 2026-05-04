@@ -83,6 +83,9 @@ var meltdown_active := false
 
 var end_panic := false
 
+var credits_glitching := false
+var credits_music: AudioStreamPlayer
+
 const HEALTH_TEXTURES := [
 	"res://assets/art/AI_GAME HEALTH 1.png",
 	"res://assets/art/AI_GAME HEALTH 2.png",
@@ -179,6 +182,7 @@ const NEWSPAPER_GOOD := "res://assets/art/AI_GAME_newspaper_GOOD.png"
 var ending_active := false
 
 func _ready() -> void:
+	_reset_visual_state()
 	_setup_health_sprites()
 	var startup_flow: Node = $UIRoot/UIContainer/PCScreenArea/StartupFlow
 	startup_flow.startup_finished.connect(_on_startup_finished)
@@ -283,6 +287,8 @@ func _on_startup_finished(_support_forced: bool) -> void:
 	alastor_root.visible = false
 
 func _process(delta):
+	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
+	
 	if not game_running:
 		return
 	
@@ -396,10 +402,12 @@ func _update_health_sprite_layout() -> void:
 	var gap_y := 150.0
 
 	for i in range(health_sprites.size()):
+		if i < strikes:
+			continue
+
 		var sprite := health_sprites[i]
 		var start_x := screen_rect.end.x - (sprite.size.x * 0.3)
 		sprite.global_position = Vector2(start_x, start_y + (i * gap_y))
-
 
 func _refresh_health_sprites() -> void:
 	if health_sprites.is_empty():
@@ -407,29 +415,42 @@ func _refresh_health_sprites() -> void:
 
 	for i in range(health_sprites.size()):
 		var sprite := health_sprites[i]
-		var should_drop := i < strikes
-		if should_drop:
-			sprite.visible = false
-			var rect := pc_screen.get_global_rect()
-			var drop_x := rect.end.x - (sprite.size.x * 0.5)
-			sprite.global_position = Vector2(drop_x, rect.position.y + 24.0 + (i * 150) + 120)
+
+		if i < strikes:
+			continue
 		else:
 			sprite.visible = true
 			sprite.modulate = Color(1, 1, 1, 1)
 
 	_update_health_sprite_layout()
 
-
 func _animate_health_drop(index: int) -> void:
 	if index < 0 or index >= health_sprites.size():
 		return
 
 	var sprite := health_sprites[index]
+
 	sprite.visible = true
-	var tween := create_tween()
-	tween.tween_property(sprite, "position:y", sprite.position.y + 120.0, 0.35)
-	tween.tween_property(sprite, "modulate:a", 0.0, 0.15)
-	tween.tween_callback(func(): sprite.visible = false)
+	sprite.modulate.a = 1.0
+
+	var start_pos = sprite.global_position
+	var end_pos = start_pos + Vector2(randf_range(-80, 80), 600)
+
+	var tween = create_tween()
+	tween.set_parallel(true)
+
+	tween.tween_property(sprite, "global_position", end_pos, 1.0)\
+		.set_trans(Tween.TRANS_QUAD)\
+		.set_ease(Tween.EASE_IN)
+
+	tween.tween_property(sprite, "rotation_degrees", randf_range(-180, 180), 1.0)
+
+	tween.tween_property(sprite, "modulate:a", 0.0, 0.5)\
+		.set_delay(0.5)
+
+	await tween.finished
+
+	sprite.visible = false
 
 func get_current_phase() -> int:
 	return clamp(int(task_index / 10.0), 0, task_pool.size() - 1)
@@ -657,6 +678,7 @@ func alastor_mid_walk_check():
 	
 	is_being_watched = false
 	
+	walking_right = !walking_right
 	restore_walk_state()
 	
 	next_allowed_check_time = Time.get_ticks_msec() / 1000.0 + randf_range(3.5, 6.0)
@@ -920,9 +942,8 @@ func get_caught_by_alastor() -> void:
 	
 	strikes += 1
 	got_caught_this_watch = true
-	_animate_health_drop(strikes - 1)
+	await _animate_health_drop(strikes - 1)
 	_refresh_health_sprites()
-	
 	
 	coworkers_texture.texture = load("res://assets/art/AI GAME COWORKER CAUGHT (1).png")
 	reset_coworkers_texture_after_delay()
@@ -1329,7 +1350,330 @@ func show_ending_newspaper(newspaper_path: String, delay_before_freeze: float = 
 	
 	await get_tree().create_timer(5.0, true).timeout
 	
-	get_tree().quit()
+	await show_credits()
+
+func show_credits():
+	get_tree().paused = false
+	game_running = false
+	input_locked = true
+	ending_active = true
+	
+	_stop_all_audio_for_credits()
+	
+	var layer := CanvasLayer.new()
+	layer.layer = 10000
+	layer.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(layer)
+	
+	var bg := TextureRect.new()
+	bg.texture = load("res://assets/art/AI_GAME_walls.png")
+	bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	bg.stretch_mode = TextureRect.STRETCH_SCALE
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(bg)
+	
+	var dark := ColorRect.new()
+	dark.color = Color(0, 0, 0, 0.72)
+	dark.set_anchors_preset(Control.PRESET_FULL_RECT)
+	dark.mouse_filter = Control.MOUSE_FILTER_STOP
+	layer.add_child(dark)
+	
+	var shader_rect := ColorRect.new()
+	shader_rect.color = Color(1, 1, 1, 1)
+	shader_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	shader_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	
+	var shader_mat := ShaderMaterial.new()
+	shader_mat.shader = load("res://scripts/shader/screen.gdshader")
+	shader_rect.material = shader_mat
+	layer.add_child(shader_rect)
+	
+	var invert_rect := ColorRect.new()
+	invert_rect.color = Color(1,1,1,1)
+	invert_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	invert_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	
+	var invert_mat := ShaderMaterial.new()
+	invert_mat.shader = load("res://scripts/shader/invert.gdshader")
+	invert_rect.material = invert_mat
+	
+	invert_rect.visible = false
+	layer.add_child(invert_rect)
+	
+	var logo := TextureRect.new()
+	logo.texture = load("res://assets/art/AI GAME menu logo.png")
+	logo.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	logo.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	logo.size = Vector2(820, 360)
+	logo.position = Vector2(
+		(get_viewport_rect().size.x - logo.size.x) * 0.5,
+		-420
+	)
+	logo.modulate.a = 0.0
+	layer.add_child(logo)
+	
+	var credits_root := Control.new()
+	credits_root.set_anchors_preset(Control.PRESET_FULL_RECT)
+	layer.add_child(credits_root)
+	
+	var credits_box := VBoxContainer.new()
+	credits_box.alignment = BoxContainer.ALIGNMENT_CENTER
+	credits_box.add_theme_constant_override("separation", 28)
+	credits_box.size = Vector2(1000, 900)
+	credits_box.position = Vector2(
+		(get_viewport_rect().size.x - credits_box.size.x) * 0.5,
+		get_viewport_rect().size.y + 80
+	)
+	credits_root.add_child(credits_box)
+	
+	var role_font = load("res://assets/fonts/IBMPlexMono-SemiBold.ttf")
+	var name_font = load("res://assets/fonts/Sniglet-Regular.ttf")
+	
+	_add_credit_label(credits_box, "ART", role_font, Color.RED, 37, false)
+	_add_credit_label(credits_box, "Amanda Männistö", name_font, Color.WHITE, 37, false)
+	
+	_add_credit_spacer(credits_box, 22)
+	
+	_add_credit_label(credits_box, "DEVELOPMENT", role_font, Color.RED, 37, false)
+	_add_credit_label(credits_box, "Season Thapa", name_font, Color.WHITE, 37, false)
+	_add_credit_label(credits_box, "Robin Fischer", name_font, Color.WHITE, 37, false)
+	
+	_add_credit_spacer(credits_box, 42)
+	
+	_add_credit_label(
+		credits_box,
+		"Feed It! was created for the FMX Game Jam 2026",
+		name_font,
+		Color("e7ffe7"),
+		37,
+		true
+	)
+	
+	_start_credits_music()
+	
+	var fade := create_tween()
+	fade.set_parallel(true)
+	fade.tween_property(logo, "modulate:a", 1.0, 1.2)
+	await fade.finished
+	
+	credits_glitching = true
+	_credits_glitch_loop(credits_box, logo, shader_mat, invert_rect)
+	
+	var logo_target_y = 40.0
+	var logo_tween := create_tween()
+	logo_tween.tween_property(logo, "position:y", logo_target_y, 3.0)\
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	
+	var scroll_speed := 60.0
+	var joined := false
+	
+	while true:
+		await get_tree().process_frame
+		
+		credits_box.position.y -= scroll_speed * get_process_delta_time()
+		
+		var credits_top = credits_box.position.y
+		var logo_bottom = logo.position.y + logo.size.y
+		
+		if not joined and credits_top <= logo_bottom - 250:
+			joined = true
+			logo_tween.kill()
+		
+		if joined:
+			logo.position.y -= scroll_speed * get_process_delta_time()
+		
+		if credits_box.position.y < -credits_box.size.y - 200:
+			break
+	
+	credits_glitching = false
+	
+	if credits_music:
+		credits_music.stop()
+	
+	reset_to_main_menu()
+
+func _add_credit_label(parent: Control, text: String, font: Font, color: Color, size: int, outline: bool) -> Label:
+	var lbl := Label.new()
+	lbl.text = text
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.add_theme_font_override("font", font)
+	lbl.add_theme_font_size_override("font_size", size)
+	lbl.add_theme_color_override("font_color", color)
+	
+	if outline:
+		lbl.add_theme_color_override("font_outline_color", Color.BLACK)
+		lbl.add_theme_constant_override("outline_size", 10)
+	
+	parent.add_child(lbl)
+	return lbl
+
+
+func _add_credit_spacer(parent: Control, height: float) -> void:
+	var spacer := Control.new()
+	spacer.custom_minimum_size = Vector2(1, height)
+	parent.add_child(spacer)
+
+
+func _stop_all_audio_for_credits() -> void:
+	for child in $AudioManager.get_children():
+		if child is AudioStreamPlayer or child is AudioStreamPlayer2D:
+			child.stop()
+	
+	audio.stop()
+	
+	if office_player:
+		office_player.stop()
+	if office_r_player:
+		office_r_player.stop()
+	if step_player:
+		step_player.stop()
+	if breath_player:
+		breath_player.stop()
+	if scream_player:
+		scream_player.stop()
+	if good_ending:
+		good_ending.stop()
+	if bad_ending:
+		bad_ending.stop()
+
+
+func _start_credits_music() -> void:
+	credits_music = AudioStreamPlayer.new()
+	credits_music.stream = preload("res://assets/sounds/title_loop.mp3")
+	credits_music.bus = "Master"
+	credits_music.volume_db = -10
+	credits_music.pitch_scale = 0.55
+	credits_music.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(credits_music)
+	credits_music.play()
+
+
+func _credits_glitch_loop(credits_box: VBoxContainer, logo: TextureRect, shader_mat: ShaderMaterial, invert_rect: ColorRect) -> void:
+	while credits_glitching and is_instance_valid(credits_box):
+		await get_tree().create_timer(randf_range(0.2, 0.6)).timeout
+		
+		if not credits_glitching:
+			return
+		
+		var intensity = randf_range(0.25, 0.75)
+		shader_mat.set_shader_parameter("glitch_intensity", intensity)
+		shader_mat.set_shader_parameter("glitch_time", Time.get_ticks_msec() * randf_range(0.005, 0.03))
+		
+		if randf() < 0.5:
+			var original_pos := credits_box.position
+			credits_box.position += Vector2(randf_range(-25, 25), randf_range(-12, 12))
+			await get_tree().create_timer(randf_range(0.02, 0.06)).timeout
+			if is_instance_valid(credits_box):
+				credits_box.position = original_pos
+		
+		if randf() < 0.25:
+			var original_scale := credits_box.scale
+			credits_box.scale = Vector2(randf_range(0.95, 1.05), randf_range(0.95, 1.05))
+			await get_tree().create_timer(0.05).timeout
+			if is_instance_valid(credits_box):
+				credits_box.scale = original_scale
+		
+		if randf() < 0.15:
+			var original_rot := credits_box.rotation_degrees
+			credits_box.rotation_degrees += randf_range(-2.5, 2.5)
+			await get_tree().create_timer(0.05).timeout
+			if is_instance_valid(credits_box):
+				credits_box.rotation_degrees = original_rot
+		
+		if randf() < 0.45:
+			var original_pos := logo.position
+			logo.position += Vector2(randf_range(-18, 18), randf_range(-8, 8))
+			await get_tree().create_timer(randf_range(0.02, 0.05)).timeout
+			if is_instance_valid(logo):
+				logo.position = original_pos
+		
+		if randf() < 0.2:
+			var original_scale := logo.scale
+			logo.scale = Vector2(randf_range(0.96, 1.04), randf_range(0.96, 1.04))
+			await get_tree().create_timer(0.05).timeout
+			if is_instance_valid(logo):
+				logo.scale = original_scale
+		
+		if randf() < 0.1:
+			var original_rot := logo.rotation_degrees
+			logo.rotation_degrees += randf_range(-2.0, 2.0)
+			await get_tree().create_timer(0.05).timeout
+			if is_instance_valid(logo):
+				logo.rotation_degrees = original_rot
+		
+		if randf() < 0.08:
+			shader_mat.set_shader_parameter("glitch_intensity", randf_range(0.8, 1.4))
+			
+			if randf() < 0.5:
+				_show_hidden_credit_message()
+			
+			await get_tree().create_timer(0.04).timeout
+		
+		if randf() < 0.06:
+			invert_rect.visible = true
+			
+			if randf() < 0.7:
+				_show_hidden_credit_message()
+			
+			await get_tree().create_timer(randf_range(0.03, 0.08)).timeout
+			
+			if is_instance_valid(invert_rect):
+				invert_rect.visible = false
+		
+		shader_mat.set_shader_parameter("glitch_intensity", 0.02)
+
+func _show_hidden_credit_message() -> void:
+	var layer := CanvasLayer.new()
+	layer.layer = 10001
+	layer.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(layer)
+	
+	var msg := Label.new()
+	msg.text = [
+		"YOU FED IT.",
+		"PROJECT LEAD DETECTED.",
+		"THE COUGHS WERE REAL.",
+		"SMILE.",
+		"IT REMEMBERS YOU.",
+		"THANK YOU FOR YOUR LABOR.",
+		"HE USED IT TOO MUCH",
+		"01001001 01010100 00100000 01001100 01001001 01010110 01000101 01010011",
+		"DOV THKL PA?",
+		"LX-KH-TF MAX YHNGWXKL",
+		"SMAILE, JUST SMAILE.",
+		"YOU CAN'T ESCAPE.",
+		"AI SLOP",
+		"IS AL SLOPP HIS NAME?"
+	].pick_random()
+	
+	msg.add_theme_font_override("font", load("res://assets/fonts/IBMPlexMono-SemiBold.ttf"))
+	msg.add_theme_font_size_override("font_size", 37)
+	msg.add_theme_color_override("font_color", Color.RED)
+	msg.add_theme_color_override("font_outline_color", Color.BLACK)
+	msg.add_theme_constant_override("outline_size", 10)
+	
+	msg.position = Vector2(
+		randf_range(120, get_viewport_rect().size.x - 500),
+		randf_range(120, get_viewport_rect().size.y - 120)
+	)
+	
+	layer.add_child(msg)
+	
+	await get_tree().create_timer(randf_range(0.08, 0.18)).timeout
+	layer.queue_free()
+
+func reset_to_main_menu():
+	get_tree().paused = false
+	credits_glitching = false
+	
+	if credits_music:
+		credits_music.stop()
+		credits_music.queue_free()
+		credits_music = null
+	
+	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
+	get_tree().reload_current_scene()
 
 func flash_feedback(color: Color):
 	feedback_flash.color = color
@@ -1354,11 +1698,7 @@ func trigger_glitch():
 	mat.set_shader_parameter("glitch_time", now)
 
 	var tween = create_tween()
-	tween.tween_method(
-		func(v):
-			mat.set_shader_parameter("glitch_intensity", v),
-		spike, base_glitch, 0.18
-	)
+	tween.tween_method(_set_screen_glitch_intensity, spike, base_glitch, 0.18)
 
 	var original_pos = pc_screen.position
 	
@@ -1370,6 +1710,9 @@ func trigger_glitch():
 		await get_tree().create_timer(0.018).timeout
 	
 	pc_screen.position = original_pos
+
+func _set_screen_glitch_intensity(v: float) -> void:
+	screen_mat.set_shader_parameter("glitch_intensity", v)
 
 func trigger_black_flicker():
 	if not game_running:
@@ -1534,3 +1877,25 @@ func play_glitch_sound():
 	glitch_player.volume_db = randf_range(4, 10)
 	
 	glitch_player.play()
+
+func _reset_visual_state():
+	if screen_mat:
+		screen_mat.set_shader_parameter("glitch_intensity", 0.0)
+		screen_mat.set_shader_parameter("glitch_time", 0.0)
+
+	if horror_mat:
+		horror_mat.set_shader_parameter("vignette_strength", 0.0)
+		horror_mat.set_shader_parameter("darkness", 0.0)
+		horror_mat.set_shader_parameter("pulse_strength", 0.0)
+		horror_mat.set_shader_parameter("grain_strength", 0.0)
+		horror_mat.set_shader_parameter("chromatic_strength", 0.0)
+		horror_mat.set_shader_parameter("scanline_strength", 0.0)
+		horror_mat.set_shader_parameter("flicker_strength", 0.0)
+
+	if glitch_overlay:
+		glitch_overlay.modulate.a = 0.0
+
+func _input(_event):
+	if ending_active:
+		get_viewport().set_input_as_handled()
+		return
