@@ -395,6 +395,7 @@ mouse_filter = 2
 color = Color(1, 1, 1, 0)
 
 [node name="GlitchOverlay" type="ColorRect" parent="UIRoot/UIContainer/PCScreenArea"]
+z_index = 100
 layout_mode = 0
 offset_right = 1394.0
 offset_bottom = 502.0
